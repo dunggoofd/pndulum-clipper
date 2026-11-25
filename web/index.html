@@ -1,0 +1,774 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Clip Desk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark;--bg:#0b0b0d;--ink:#f4f4f6;--ink-2:#a8a8b0;--ink-3:#6e6e78;--accent:#ff6b35;--accent-ink:#1a0b05;--accent-soft:rgba(255,107,53,.16);
+--glass:rgba(255,255,255,.055);--glass-2:rgba(255,255,255,.09);--glass-3:rgba(255,255,255,.14);--float:rgba(18,18,22,.96);--stroke:rgba(255,255,255,.11);--stroke-2:rgba(255,255,255,.2);--spec:rgba(255,255,255,.18);
+--shadow:0 24px 70px -28px rgba(0,0,0,.75),0 2px 6px rgba(0,0,0,.25);
+--good:#2fb866;--warn:#fab219;--serious:#ec835a;--critical:#e25555;--warn-ink:#fab219;
+--c1:#3987e5;--c2:#d95926;--c3:#199e70;--c4:#c98500;--c5:#d55181;--c6:#3da33d;--c7:#9085e9;--c8:#e66767;--c0:#6e6e78;
+--font:"Geist",ui-sans-serif,system-ui,-apple-system,sans-serif;--mono:"Geist Mono",ui-monospace,Menlo,monospace;
+--r-xl:28px;--r-lg:22px;--r-md:16px;--r-sm:11px;--ease:cubic-bezier(.22,1,.36,1);--t:200ms}
+:root[data-theme="light"]{color-scheme:light;--bg:#e9ebf0;--ink:#0b0b0d;--ink-2:#4b4b55;--ink-3:#7a7a86;--accent:#e9561f;--accent-ink:#fff;--accent-soft:rgba(233,86,31,.13);
+--glass:rgba(255,255,255,.52);--glass-2:rgba(255,255,255,.72);--glass-3:rgba(255,255,255,.9);--float:rgba(248,249,251,.97);--stroke:rgba(10,10,20,.08);--stroke-2:rgba(10,10,20,.16);--spec:rgba(255,255,255,.9);
+--shadow:0 24px 70px -30px rgba(20,20,40,.28),0 2px 6px rgba(20,20,40,.06);
+--good:#0c8a3c;--warn:#eda100;--warn-ink:#8a5f00;--serious:#a8451d;--critical:#c62f2f;
+--c1:#2a78d6;--c2:#eb6834;--c3:#1baf7a;--c4:#eda100;--c5:#e87ba4;--c6:#008300;--c7:#6250d6;--c8:#e34948;--c0:#7a7a86}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;min-height:100vh;font-family:var(--font);font-size:14.5px;line-height:1.45;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input,select{font:inherit;color:inherit}
+h1,h2,h3,p{margin:0}
+.n{font-family:var(--mono);font-variant-numeric:tabular-nums}
+kbd{font:500 11px/1 var(--mono);padding:4px 6px;border-radius:6px;background:var(--glass-2);border:1px solid var(--stroke);color:var(--ink-2);box-shadow:inset 0 -1px 0 var(--stroke);white-space:nowrap}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.blobs{position:fixed;inset:-10%;z-index:-1;overflow:hidden;pointer-events:none}
+.blob{position:absolute;border-radius:50%;filter:blur(90px) saturate(130%);opacity:.5;mix-blend-mode:screen;animation:drift 50s ease-in-out infinite alternate}
+:root[data-theme="light"] .blob{mix-blend-mode:multiply;opacity:.26}
+.blob.a{width:56vmax;height:56vmax;left:-12vmax;top:-18vmax;background:radial-gradient(circle,#ff6b35,transparent 62%)}
+.blob.b{width:50vmax;height:50vmax;right:-14vmax;top:10vmax;background:radial-gradient(circle,#3b6cff,transparent 62%);animation-delay:-16s}
+.blob.c{width:44vmax;height:44vmax;left:28vmax;bottom:-22vmax;background:radial-gradient(circle,#8a5cff,transparent 62%);animation-delay:-30s}
+@keyframes drift{0%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(6vmax,-4vmax,0) scale(1.08)}100%{transform:translate3d(-5vmax,6vmax,0) scale(.96)}}
+@media (prefers-reduced-motion:reduce){.blob{animation:none}*{transition:none!important}}
+
+.glass{position:relative;background:var(--glass);-webkit-backdrop-filter:blur(28px) saturate(170%);backdrop-filter:blur(28px) saturate(170%);border:1px solid var(--stroke);border-radius:var(--r-lg);box-shadow:inset 0 1px 0 var(--spec),var(--shadow)}
+.pane{background:var(--glass);border:1px solid var(--stroke);border-radius:var(--r-md);box-shadow:inset 0 1px 0 rgba(255,255,255,.08);transition:background var(--t) var(--ease),border-color var(--t) var(--ease),transform var(--t) var(--ease)}
+.pane.link{cursor:pointer}
+.pane.link:hover{background:var(--glass-2);border-color:var(--stroke-2);transform:translateY(-1px)}
+
+.wrap{max-width:1280px;margin:0 auto;padding:14px 20px 80px}
+.top{display:flex;align-items:center;gap:14px;padding:8px 10px 8px 16px;border-radius:999px;position:sticky;top:12px;z-index:30;background:var(--float)}
+.brand{display:flex;flex-direction:column;line-height:1.1;margin-right:4px}
+.brand b{font-size:14.5px;font-weight:600;letter-spacing:-.01em}
+.brand span{font-size:11px;color:var(--ink-3)}
+.tabs{flex:1;display:flex;justify-content:center;gap:2px;padding:4px;border-radius:999px;background:var(--glass);border:1px solid var(--stroke);overflow-x:auto;scrollbar-width:none}
+.tabs a{display:flex;align-items:center;gap:8px;padding:7px 14px;border-radius:999px;font-weight:500;color:var(--ink-2);white-space:nowrap;font-size:14px}
+.tabs a i{font:500 11px var(--mono);font-style:normal;color:var(--ink-3)}
+.tabs a em{font:500 11px var(--mono);font-style:normal;color:var(--ink-3)}
+.tabs a.on{background:var(--glass-3);color:var(--ink);font-weight:600;box-shadow:0 2px 10px -4px rgba(0,0,0,.25)}
+.tabs a.hot em{color:var(--critical);font-weight:600}
+.live{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;border:1px solid var(--stroke);background:var(--glass);font:500 12px var(--mono);color:var(--ink-2);white-space:nowrap}
+.leds{display:flex;gap:3px}
+.led{width:7px;height:7px;border-radius:50%;background:var(--ink-3);opacity:.4}
+.led.ok{background:var(--good);opacity:1}.led.bad{background:var(--critical);opacity:1}
+.ic{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:var(--ink-2);font-size:15px}
+.ic:hover{background:var(--glass-2);color:var(--ink)}
+.findbar{display:flex;align-items:center;gap:12px;width:100%;margin-top:14px;padding:16px 20px;border-radius:var(--r-lg);color:var(--ink-3);font-size:16px;text-align:left}
+.findbar span{flex:1}
+.findbar:hover{background:var(--glass-2)}
+
+.filters{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:16px 0}
+.seg{display:inline-flex;gap:2px;padding:3px;border-radius:999px;background:var(--glass);border:1px solid var(--stroke)}
+.seg button{padding:6px 13px;border-radius:999px;font-size:13px;font-weight:500;color:var(--ink-2);white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--glass-3);color:var(--ink);font-weight:600;box-shadow:0 2px 8px -4px rgba(0,0,0,.25)}
+.seg button em{font:500 11px var(--mono);font-style:normal;color:var(--ink-3);margin-left:5px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chipb{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;border:1px solid var(--stroke);background:var(--glass);font-size:12.5px;font-weight:500;color:var(--ink-2);white-space:nowrap}
+.chipb[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.dot{width:8px;height:8px;border-radius:50%;flex:none;background:var(--c0)}
+.sel{padding:7px 12px;border-radius:999px;border:1px solid var(--stroke);background:var(--glass);font-size:13px;font-weight:500}
+.sp{flex:1}
+
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:18px}
+.kpis.k5{grid-template-columns:repeat(5,minmax(0,1fr))}
+.kpi{padding:18px;min-width:0}
+.kpi .l{font-size:12.5px;color:var(--ink-3);font-weight:500}
+.kpi .v{font-size:34px;font-weight:600;letter-spacing:-.03em;line-height:1.15;margin-top:4px}
+.kpi .v small{font-size:14px;font-weight:500;color:var(--ink-3);letter-spacing:0}
+.kpi .s{font:400 11.5px var(--mono);color:var(--ink-3);margin-top:4px}
+.kpi .s.up{color:var(--good)}.kpi .s.down{color:var(--serious)}
+.kpi.alert .v{color:var(--critical)}
+.spark{display:flex;align-items:flex-end;gap:4px;height:34px;margin-top:10px}
+.spark i{flex:1;min-height:2px;border-radius:2px;background:var(--ink-3);opacity:.45}
+.spark i:last-child{background:var(--accent);opacity:1}
+
+.grp{display:flex;align-items:center;gap:10px;margin:22px 4px 10px;font-weight:600;font-size:14.5px}
+.grp em{font:500 12px var(--mono);font-style:normal;color:var(--ink-3)}
+.row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center;padding:12px 16px;margin-bottom:8px}
+.row .th{width:44px;height:78px;border-radius:8px;object-fit:cover;background:var(--glass-2);display:block}
+.row .th.wide{width:92px;height:52px}
+.row .ti{font-weight:500;font-size:15px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.row .su{color:var(--ink-2);font-size:13px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tags{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:7px}
+.tag{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:999px;border:1px solid var(--stroke);background:var(--glass-2);font-size:12px;font-weight:500;color:var(--ink-2);white-space:nowrap}
+.tag.pr-critical{color:var(--critical);border-color:color-mix(in srgb,var(--critical) 45%,transparent)}
+.tag.pr-high{color:var(--serious);border-color:color-mix(in srgb,var(--serious) 45%,transparent)}
+.tag.pr-medium{color:var(--warn-ink);border-color:color-mix(in srgb,var(--warn) 55%,transparent)}
+.tag.st-review{color:var(--warn-ink);border-color:color-mix(in srgb,var(--warn) 55%,transparent)}
+.tag.st-approved{color:var(--c1);border-color:color-mix(in srgb,var(--c1) 45%,transparent)}
+.tag.st-posted{color:var(--good);border-color:color-mix(in srgb,var(--good) 45%,transparent)}
+.tag.st-paid{color:var(--accent-ink);background:var(--accent);border-color:var(--accent)}
+.tag.st-rejected{color:var(--ink-3)}
+.tag.money{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 45%,transparent)}
+.tag.ok{color:var(--good)}.tag.bad{color:var(--critical)}
+.ref{font:500 12px var(--mono);color:var(--ink-3)}
+.rt{display:flex;flex-direction:column;align-items:flex-end;gap:8px;white-space:nowrap}
+.age{font:500 12px var(--mono);color:var(--ink-3)}
+.age.hot{color:var(--critical)}.age.warm{color:var(--warn-ink)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:7px 14px;border-radius:999px;border:1px solid var(--stroke-2);background:var(--glass-2);font-size:13px;font-weight:500;white-space:nowrap}
+.btn:hover{background:var(--glass-3)}
+.btn.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+.btn.good{background:var(--good);color:#fff;border-color:var(--good);font-weight:600}
+.btn.warn{color:var(--warn-ink);border-color:color-mix(in srgb,var(--warn) 60%,transparent)}
+.btn.sm{padding:4px 11px;font-size:12.5px}
+.btn.lg{padding:11px 20px;font-size:15px}
+.btn:disabled{opacity:.5;cursor:default}
+.btn kbd{margin-left:2px;background:rgba(255,255,255,.22);border-color:transparent;color:inherit;box-shadow:none}
+.acts{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.empty{padding:56px 20px;text-align:center;color:var(--ink-2);border:1px dashed var(--stroke-2);border-radius:var(--r-lg)}
+.empty b{display:block;color:var(--ink);font-size:17px;margin-bottom:4px}
+.note{color:var(--ink-2);font-size:13px;margin:0 4px 12px}
+
+.cols{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:18px;align-items:start}
+.panel{padding:18px;margin-bottom:16px}
+.panel h3{font:600 12px var(--font);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);margin-bottom:12px}
+.panel h3 em{font:500 12px var(--mono);font-style:normal;margin-left:6px;letter-spacing:0;text-transform:none}
+.bar{display:grid;grid-template-columns:130px minmax(0,1fr) 56px;gap:10px;align-items:center;padding:4px 0;font-size:13px;color:var(--ink-2)}
+.bar span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar .tr{height:8px;border-radius:4px;background:transparent}
+.bar .tr i{display:block;height:100%;border-radius:4px;background:var(--accent);min-width:2px}
+.bar b{text-align:right;font:500 12.5px var(--mono);color:var(--ink)}
+.day{display:grid;grid-template-columns:120px minmax(0,1fr);gap:8px;margin-bottom:10px}
+.day>div:first-child{padding-top:10px}
+.day h4{margin:0;font-size:15px;font-weight:600}
+.day .d{font:400 11.5px var(--mono);color:var(--ink-3)}
+.ev{display:grid;grid-template-columns:52px minmax(0,1fr);gap:8px;padding:11px 14px;margin-bottom:6px}
+.ev .tm{font:500 12.5px var(--mono);color:var(--ink-3);padding-top:1px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;color:var(--ink-3);font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:600;padding:6px 8px;white-space:nowrap}
+td{padding:7px 8px;border-top:1px solid var(--stroke);vertical-align:middle}
+td.r,th.r{text-align:right}
+td.log{color:var(--ink-3);font-size:12px;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tw{overflow-x:auto}
+input.in{padding:6px 10px;border-radius:10px;border:1px solid var(--stroke-2);background:var(--glass-2);min-width:0;font-size:13px}
+input.rate{width:74px;text-align:right}
+
+/* review focus */
+.rv{display:grid;grid-template-columns:auto minmax(0,1fr);gap:20px;align-items:start}
+.player{height:calc(100vh - 250px);min-height:420px;aspect-ratio:9/16;border-radius:var(--r-lg);overflow:hidden;background:#000;position:sticky;top:90px;box-shadow:var(--shadow)}
+.player video{width:100%;height:100%;object-fit:contain;display:block;background:#000}
+.rvbar{display:flex;align-items:center;gap:14px;margin:16px 0}
+.prog{flex:1;height:6px;border-radius:3px;background:var(--glass-2);border:1px solid var(--stroke);overflow:hidden}
+.prog i{display:block;height:100%;background:var(--accent)}
+.keys{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--ink-3);margin-top:14px;align-items:center}
+.det{padding:20px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.det .lbl{font:600 11px var(--font);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);margin-bottom:5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.det .hook{font-size:22px;font-weight:600;letter-spacing:-.02em;line-height:1.2}
+.cprow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:start;padding:5px 0}
+.cprow .alt{display:flex;gap:9px;align-items:baseline;color:var(--ink-2)}
+.cp{font-size:12.5px;font-weight:600;color:var(--accent);padding:2px 6px;border-radius:6px}
+.cp:hover{background:var(--accent-soft)}
+.why{color:var(--ink-2);font-size:13px}
+.err{color:var(--critical);font-size:12.5px}
+.cv{display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px}
+.cv img.main{width:110px;border-radius:10px;display:block}
+.cands{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:4px;margin-bottom:8px}
+.cand{padding:0;border-radius:6px;overflow:hidden;border:2px solid transparent;aspect-ratio:9/16}
+.cand img{width:100%;height:100%;object-fit:cover;display:block}
+.cand.on{border-color:var(--accent)}
+.frm{display:flex;gap:6px;min-width:0}
+.frm input{flex:1}
+.prow{display:grid;grid-template-columns:62px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--stroke);font-size:13px}
+.prow .pn{font-weight:600}
+.pinfo{display:flex;flex-wrap:wrap;gap:8px;align-items:center;min-width:0}
+.pinfo a{color:var(--accent);font-weight:500}
+.x{width:26px;height:26px;border-radius:50%;color:var(--ink-3)}
+.x:hover{background:var(--glass-3);color:var(--critical)}
+.ptabs{display:inline-flex;gap:2px}
+.ptabs button{padding:2px 8px;border-radius:999px;font-size:11.5px;font-weight:500;color:var(--ink-3);letter-spacing:0;text-transform:none}
+.ptabs button[aria-pressed="true"]{background:var(--glass-3);color:var(--ink)}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}
+.card{display:flex;flex-direction:column;overflow:hidden;cursor:pointer}
+.card .pv{position:relative;aspect-ratio:9/16;background:#000;overflow:hidden}
+.card .pv img,.card .pv video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+.card .pv .b1,.card .pv .b2{position:absolute;top:8px;z-index:1;padding:2px 8px;border-radius:999px;background:rgba(0,0,0,.62);color:#fff;font:500 11.5px var(--mono)}
+.card .pv .b1{left:8px}.card .pv .b2{right:8px}
+.grid.wide{grid-template-columns:repeat(auto-fill,minmax(270px,1fr))}.card .pv.wide{aspect-ratio:16/9}.card.rcard{cursor:default}.card.rcard .su{font-size:12.5px;margin:2px 0 6px}
+.card .pv .b1.hot{background:#d93a2b}.card .pv .b1.warm{background:#c9781c}
+.card .bd{padding:10px 12px 12px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.card .ti{font-size:13.5px;line-height:1.3;-webkit-line-clamp:3}
+.card .acts{gap:6px}
+.card .acts .btn{flex:1}
+/* drawer, find, help */
+.scrim{position:fixed;inset:0;z-index:45;background:rgba(0,0,0,.3);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+.drawer{position:fixed;top:0;right:0;bottom:0;z-index:50;width:min(980px,100vw);background:var(--float);border-left:1px solid var(--stroke);box-shadow:var(--shadow);overflow-y:auto;padding:20px;animation:slide .25s var(--ease) both}
+@keyframes slide{from{transform:translateX(40px);opacity:0}}
+.drawer .rv .player{height:calc(100vh - 110px);top:0}
+.drawer .det{padding:0 0 0 0;background:none;border:0;box-shadow:none;backdrop-filter:none}
+.dclose{position:absolute;top:14px;right:14px;z-index:2}
+.fov{position:fixed;inset:0;z-index:60;display:grid;place-items:start center;padding:10vh 16px 0}
+.fbox{width:min(760px,100%);background:var(--float);border-radius:var(--r-lg);overflow:hidden}
+.fbox input{width:100%;padding:18px 22px;border:0;outline:0;background:none;font-size:18px;border-bottom:1px solid var(--stroke)}
+.fres{max-height:52vh;overflow-y:auto;padding:6px}
+.fr{display:grid;grid-template-columns:70px minmax(0,1fr) auto;gap:12px;align-items:center;padding:9px 14px;border-radius:12px;cursor:pointer}
+.fr.on{background:var(--accent-soft)}
+.fr .k{font:500 11px var(--mono);color:var(--ink-3);text-transform:uppercase}
+.fr .t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
+.fhint{padding:10px 18px;border-top:1px solid var(--stroke);font:400 11.5px var(--mono);color:var(--ink-3);display:flex;flex-wrap:wrap;gap:14px}
+.help{width:min(560px,100%);background:var(--float);padding:24px;border-radius:var(--r-lg)}
+.help h2{font-size:18px;margin-bottom:12px}
+.help div{display:flex;justify-content:space-between;gap:16px;padding:6px 0;border-top:1px solid var(--stroke);font-size:13.5px;color:var(--ink-2)}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:80;padding:10px 18px;border-radius:999px;background:var(--ink);color:var(--bg);font-weight:500;font-size:13.5px;box-shadow:var(--shadow)}
+.toast.bad{background:var(--critical);color:#fff}
+
+@media (max-width:1000px){.cols{grid-template-columns:minmax(0,1fr)}.kpis,.kpis.k5{grid-template-columns:repeat(2,minmax(0,1fr))}.rv{grid-template-columns:minmax(0,1fr)}.player{position:static;height:auto;width:min(320px,100%);margin:0 auto}.drawer .rv .player{height:auto}.brand span,.live .txt{display:none}.tabs{justify-content:flex-start}.day{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:600px){.wrap{padding:10px 16px 60px}.row{grid-template-columns:auto minmax(0,1fr)}.row .rt{grid-column:1/-1;flex-direction:row;justify-content:space-between;align-items:center}.bar{grid-template-columns:96px minmax(0,1fr) 50px}.cv{grid-template-columns:minmax(0,1fr)}.cands{grid-template-columns:repeat(4,minmax(0,1fr))}}
+</style>
+</head>
+<body>
+<div class="blobs"><div class="blob a"></div><div class="blob b"></div><div class="blob c"></div></div>
+<div class="wrap">
+  <header class="top glass">
+    <div class="brand"><b>Clip Desk</b><span>Pndulum clipper</span></div>
+    <nav class="tabs" id="tabs"></nav>
+    <div class="live" id="live" title="Recorders"><span class="leds" id="leds"></span><span class="txt" id="liveTxt">…</span></div>
+    <button class="ic" id="themeBtn" title="Theme (T)" aria-label="Toggle theme">◐</button>
+    <button class="ic" id="helpBtn" title="Shortcuts (?)" aria-label="Shortcuts">?</button>
+  </header>
+  <button class="findbar glass" id="findBar"><span>Super Find: hooks, streamers, campaigns, viewer clips…</span><kbd>/</kbd></button>
+  <div class="filters" id="filters"></div>
+  <main id="view"><div class="empty"><b>Loading the desk…</b>Reading clips, recorders and campaigns.</div></main>
+</div>
+<div id="drawerHost"></div>
+<div id="ovHost"></div>
+<script>
+const PN = {tiktok:'TikTok', youtube:'Shorts', instagram:'Reels', x:'X'};
+const VIEWS = [['now','Outstanding'],['review','Review'],['clips','Clips'],['insights','Insights'],['radar','Radar'],['campaigns','Campaigns']];
+const STL = {review:'To review', approved:'Approved', posted:'Posted', paid:'Paid', rejected:'Rejected'};
+const RSTATE = {queued:'Queued', cutting:'Cutting…', cut:'Cut · on desk', 'on desk':'Already on desk', rejected:'Judge passed', 'no own footage':'No own footage', 'waiting for VOD':'Waiting for VOD', error:'Error'};
+const LS = (k, v) => { try { if(v === undefined) return localStorage.getItem('cd2.' + k); localStorage.setItem('cd2.' + k, v); } catch(e) { return null; } };
+let S = null, view = 'now', streamer = '', range = LS('range') || '7', prio = '', metric = 'views';
+const QS = {review:{file:null, mode:LS('rvMode') || 'focus', sort:LS('rvSort') || 'score', ls:'rv', stage:'review'}, clips:{file:null, mode:LS('clMode') || 'grid', sort:LS('clSort') || 'new', ls:'cl', stage:'approved'}};
+const Q = () => QS[view === 'clips' ? 'clips' : 'review'], isQ = () => view === 'review' || view === 'clips';
+let drawerFile = null, ptab = {}, lastOp = null, sigs = {}, cuttableOnly = false, feedN = 40, radarMode = LS('radarMode') || 'list', radarSort = LS('radarSort') || 'score';
+let findOpen = false, findQ = '', findI = 0, helpOpen = false;
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt = n => n >= 1e6 ? (n/1e6).toFixed(1)+'M' : n >= 1e4 ? Math.round(n/1e3)+'k' : n >= 1e3 ? (n/1e3).toFixed(1)+'k' : String(Math.round(n * 100) / 100);
+const usd = n => '$' + (n || 0).toFixed(2);
+const nowS = () => Date.now() / 1000;
+function ago(t){ if(!t) return 'never'; const s = nowS() - t; if(s < 60) return Math.round(s)+'s'; if(s < 3600) return Math.round(s/60)+'m'; if(s < 86400) return Math.round(s/3600)+'h'; return Math.round(s/86400)+'d'; }
+function toast(msg, bad){ document.querySelectorAll('.toast').forEach(x => x.remove()); const t = document.createElement('div'); t.className = 'toast' + (bad ? ' bad' : ''); t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 2800); }
+const paidCamp = c => !c.campaign.startsWith('none');
+const campName = c => paidCamp(c) ? c.campaign.split('(')[0].trim() : 'No campaign';
+const sColor = name => { const i = S.campaigns.findIndex(x => x.streamer === name); return `var(--c${i < 0 ? 0 : i % 8 + 1})`; };
+const sDot = name => `<span class="dot" style="background:${sColor(name)}"></span>`;
+const clip = f => S.clips.find(c => c.file === f);
+
+async function api(path, body){
+  try {
+    const r = await fetch(path, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+    const j = await r.json();
+    if(!r.ok){ toast(j.error || 'Failed', true); return false; }
+    S = j; render(true); return true;
+  } catch(e) { toast('Desk not reachable', true); return false; }
+}
+async function load(){ try { S = await (await fetch('/api/state')).json(); } catch(e) { return; } render(false); }
+
+/* ---------- outstanding ---------- */
+function actions(){
+  const A = [], now = nowS(), PR = {critical:0, high:1, medium:2, low:3};
+  S.clips.forEach(c => {
+    if(c.stage === 'rejected') return;
+    const pc = paidCamp(c);
+    Object.entries(c.posts).forEach(([p, post]) => {
+      const pub = (c.publish || {})[p] || {};
+      if(pub.state === 'submit-failed') A.push({pr:'critical', g:'Submit to campaign', c, p, t:post.posted, title:`Auto-submit failed on ${PN[p]}`, sub:pub.error, act:`<button class="btn sm pri" data-resubmit="${p}">Retry submit</button>`});
+      else if(pc && !post.submitted){
+        const due = c.window ? post.posted + c.window * 60 : null, left = due ? due - now : null;
+        A.push({pr: due ? 'critical' : 'high', g:'Submit to campaign', c, p, t:post.posted, due,
+          title: due ? (left > 0 ? `Submit ${PN[p]} post to ${campName(c)}` : `Submit window missed on ${PN[p]}`) : `${PN[p]} post not submitted to ${campName(c)}`,
+          sub:c.hook, act:`<a class="btn sm" href="${esc(post.url)}" target="_blank" rel="noopener">Post ↗</a><button class="btn sm pri" data-op="submitted" data-p="${p}" data-v="1">Mark submitted</button>`});
+      }
+      if(post.error) A.push({pr:'medium', g:'Fix', c, p, t:post.checked || post.posted, title:`${PN[p]} views not pulled, enter by hand`, sub:post.error,
+        act:`<input class="in n vin" type="number" min="0" data-p="${p}" placeholder="views" aria-label="${PN[p]} views" style="width:90px">`});
+    });
+    Object.entries(c.publish || {}).forEach(([p, pub]) => { if(pub.state === 'failed' && !c.posts[p]) A.push({pr:'high', g:'Fix', c, p, t:pub.at, title:`${PN[p]} post failed`, sub:pub.error}); });
+    if(c.stage === 'approved' && c.post_to.some(x => !c.posts[x])){
+      const todo = c.post_to.filter(x => !c.posts[x]);
+      A.push({pr:'high', g:'Ready to post', c, t:c.peak, title:c.hook || '(no hook)', sub:`Approved · ${todo.map(x => PN[x]).join(', ')}` + (c.onscreen ? ` · check ${c.onscreen}` : ''),
+        act:`<button class="btn sm pri" data-publish="1" ${c.publishing ? 'disabled' : ''}>${c.publishing ? 'Posting…' : 'Post to all'}</button>`});
+    }
+    if(!c.hook || !c.caption) A.push({pr:'medium', g:'Fix', c, t:c.peak, title:'Missing hook or caption', sub:c.file});
+    if(pc && Object.keys(c.posts).length && c.paid == null && c.est > 0) A.push({pr:'low', g:'Payouts owed', c, t:Math.min(...Object.values(c.posts).map(x => x.posted)), title:`${usd(c.est)} estimated, not marked paid`, sub:c.hook});
+  });
+  S.recorders.filter(r => r.state === 'stalled' || r.state === 'stopped').forEach(r => A.push({pr:'critical', g:'System', t:r.last_seg, title:`${r.name} recorder ${r.state === 'stalled' ? 'stalled: live but no new video' : 'stopped'}`, sub:r.log}));
+  (S.scout.rows || []).filter(r => r.new && !r.joined).forEach(r => A.push({pr:'medium', g:'New campaigns', t:r.first_seen, sc:r, title:r.title, sub:`${r.pay} · ${r.why}`,
+    act:`${r.brief ? `<a class="btn sm" href="obsidian://open?path=${encodeURIComponent(r.brief)}">Brief</a>` : ''}<a class="btn sm" href="${esc(r.url)}" target="_blank" rel="noopener">Open ↗</a>`}));
+  const rev = S.clips.filter(c => c.stage === 'review');
+  if(rev.length) A.push({pr: rev.length > 20 ? 'high' : 'medium', g:'Review', t:Math.min(...rev.map(c => c.peak)), title:`${rev.length} clips waiting for review`, sub:`Best waiting: ${rev.slice().sort((a, b) => b.score - a.score).slice(0, 3).map(c => c.streamer + ' ' + c.score + '/10').join(' · ')}`, act:`<a class="btn sm pri" href="#/review">Start review</a>`});
+  return A.sort((a, b) => PR[a.pr] - PR[b.pr] || (a.due || 9e12) - (b.due || 9e12) || (a.t || 0) - (b.t || 0));
+}
+function ageCell(a){
+  if(a.due){ const left = a.due - nowS(); return `<span class="age ${left < 600 ? 'hot' : 'warm'}" data-due="${a.due}">${left > 0 ? Math.ceil(left / 60) + 'm left' : ago(a.due) + ' late'}</span>`; }
+  const s = nowS() - (a.t || nowS());
+  return `<span class="age ${a.pr === 'critical' ? 'hot' : s > 86400 ? 'warm' : ''}">${a.t ? ago(a.t) + ' open' : ''}</span>`;
+}
+function actRow(a){
+  const c = a.c;
+  return `<div class="row pane ${c ? 'link' : ''}" ${c ? `data-file="${esc(c.file)}" data-open="1"` : ''}>
+    ${c ? `<img class="th" src="/poster/${esc(c.file)}" alt="" loading="lazy">` : '<span></span>'}
+    <div><div class="ti">${esc(a.title)}</div>${a.sub ? `<div class="su">${esc(a.sub)}</div>` : ''}
+      <div class="tags"><span class="tag pr-${a.pr}">${a.pr[0].toUpperCase() + a.pr.slice(1)}</span>${c ? `<span class="tag">${sDot(c.streamer)}${esc(c.streamer)}</span>${paidCamp(c) ? `<span class="tag money">${esc(campName(c))}</span>` : ''}` : ''}${a.p ? `<span class="tag">${PN[a.p]}</span>` : ''}${a.sc ? `<span class="tag">${a.sc.lane === 'gta' ? 'GTA' : 'Big name'}</span><span class="tag">${esc(a.sc.source)}</span>` : ''}</div></div>
+    <div class="rt">${ageCell(a)}<div class="acts">${a.act || ''}</div></div>
+  </div>`;
+}
+function renderNow(){
+  const A = actions().filter(a => !streamer || (a.c && a.c.streamer === streamer));
+  const cnt = k => A.filter(a => a.pr === k).length;
+  const subs = A.filter(a => a.due && a.due > nowS()), next = subs.length ? Math.min(...subs.map(a => a.due)) : null;
+  const missed = A.filter(a => a.due && a.due <= nowS()).length;
+  const ready = A.filter(a => a.g === 'Ready to post').length;
+  const rev = S.clips.filter(c => c.stage === 'review');
+  const owed = A.filter(a => a.g === 'Payouts owed').reduce((x, a) => x + a.c.est, 0);
+  const caps = Object.entries(S.pace).map(([p, x]) => `${PN[p]} ${x.day}/${x.cap ?? '∞'}`).join(' · ');
+  $('filters').innerHTML = `<span class="ref">PRIORITY</span><div class="chips">${[['','Any',A.length],['critical','Critical',cnt('critical')],['high','High',cnt('high')],['medium','Medium',cnt('medium')],['low','Low',cnt('low')]].map(([k, l, n]) => `<button class="chipb" data-prio="${k}" aria-pressed="${prio === k}">${l} <span class="n">${n}</span></button>`).join('')}</div><span class="sp"></span>${streamerChips()}`;
+  const list = A.filter(a => !prio || a.pr === prio), groups = {};
+  list.forEach(a => (groups[a.g] = groups[a.g] || []).push(a));
+  $('view').innerHTML = `<div class="kpis">
+      <div class="kpi glass ${cnt('critical') ? 'alert' : ''}"><div class="l">Needs you now</div><div class="v">${cnt('critical') + cnt('high')}<small> of ${A.length}</small></div><div class="s">${cnt('critical')} critical · ${cnt('high')} high</div></div>
+      <div class="kpi glass ${missed ? 'alert' : ''}"><div class="l">Submit windows</div><div class="v">${subs.length}<small> open</small></div><div class="s">${next ? 'next closes in ' + Math.ceil((next - nowS()) / 60) + 'm' : 'none closing'}${missed ? ' · ' + missed + ' missed' : ''}</div></div>
+      <div class="kpi glass"><div class="l">Ready to post</div><div class="v">${ready}</div><div class="s">today ${caps}</div></div>
+      <div class="kpi glass"><div class="l">To review</div><div class="v">${rev.length}</div><div class="s">${rev.length ? 'oldest ' + ago(Math.min(...rev.map(c => c.peak))) : 'inbox zero'}${owed ? ' · ' + usd(owed) + ' owed' : ''}</div></div>
+    </div>`
+    + (list.length ? Object.entries(groups).map(([g, rows]) => `<div class="grp">${g} <em>${rows.length}</em></div>${rows.slice(0, 40).map(actRow).join('')}${rows.length > 40 ? `<p class="note">+${rows.length - 40} more</p>` : ''}`).join('')
+      : `<div class="empty"><b>Nothing outstanding</b>No windows closing, nothing to post, queue is clear.</div>`);
+}
+function streamerChips(){
+  return `<select class="sel" id="streamerSel" aria-label="Streamer"><option value="">All streamers</option>${S.campaigns.map(x => `<option value="${esc(x.streamer)}" ${x.streamer === streamer ? 'selected' : ''}>${esc(x.streamer)}</option>`).join('')}</select>`;
+}
+
+/* ---------- clip detail (review + drawer) ---------- */
+function subBadge(c, p, post){
+  if(!paidCamp(c)) return '';
+  if(post.submitted) return `<button class="tag ok" data-op="submitted" data-p="${p}" data-v="0" title="Undo">Submitted ✓</button>`;
+  if(!c.window) return `<button class="tag pr-high" data-op="submitted" data-p="${p}" data-v="1">Mark submitted</button>`;
+  const left = post.posted + c.window * 60 - nowS();
+  return `<button class="tag pr-critical" data-op="submitted" data-p="${p}" data-v="1">${left <= 0 ? 'Window missed · mark submitted' : 'Submit in ' + Math.ceil(left / 60) + 'm'}</button>`;
+}
+function postRow(c, p){
+  const post = c.posts[p], pub = (c.publish || {})[p] || {};
+  const note = pub.state === 'uploading' || pub.state === 'publishing' ? '<span class="tag st-review">Posting…</span>'
+    : pub.state === 'submitting' ? '<span class="tag st-review">Submitting…</span>'
+    : pub.state === 'failed' ? `<span class="err" title="${esc(pub.error)}">Post failed: ${esc((pub.error || '').slice(0, 70))}</span>`
+    : pub.state === 'submit-failed' ? `<span class="err" title="${esc(pub.error)}">Auto-submit failed</span><button class="btn sm" data-resubmit="${p}">Retry submit</button>` : '';
+  if(!post && !c.post_to.includes(p)) return `<div class="prow"><span class="pn">${PN[p]}</span><span class="why">not allowed in this campaign</span><span></span></div>`;
+  if(!post && note && pub.state !== 'failed') return `<div class="prow"><span class="pn">${PN[p]}</span><div class="pinfo">${note}</div><span></span></div>`;
+  if(!post) return `<div class="prow"><span class="pn">${PN[p]}</span><form class="frm" data-form="post" data-p="${p}">${note}<input class="in" name="url" type="url" placeholder="Paste ${PN[p]} post URL" aria-label="${PN[p]} post URL"><button class="btn sm">Add</button></form><span></span></div>`;
+  return `<div class="prow"><span class="pn">${PN[p]}</span><div class="pinfo">
+    <a href="${esc(post.url)}" target="_blank" rel="noopener">Open ↗</a>
+    ${post.views != null ? `<b class="n">${fmt(post.views)} views</b>` : '<span class="why">no views yet</span>'}
+    ${post.est != null ? `<span class="tag money n">${usd(post.est)}</span>` : ''}${subBadge(c, p, post)}${note}
+    ${post.error ? `<span class="err" title="${esc(post.error)}">auto-pull failed:</span><input class="in n vin" type="number" min="0" data-p="${p}" placeholder="views" aria-label="${PN[p]} views" style="width:90px">` : ''}
+    ${post.checked ? `<span class="why">${post.source === 'manual' ? 'manual' : post.source === 'blotato' ? 'Blotato' : 'pulled'} ${ago(post.checked)} ago</span>` : ''}
+  </div><button class="x" data-op="unpost" data-p="${p}" title="Remove ${PN[p]} post" aria-label="Remove ${PN[p]} post">×</button></div>`;
+}
+const govBlocked = (c, todo) => todo.filter(x => (S.pace[x] || {}).gov || ((c.publish[x] || {}).error || '').startsWith('governor:'));
+function govBtn(c, todo, sz){
+  if(!todo.length || c.publishing) return '';
+  const b = govBlocked(c, todo);
+  const tip = 'Posts with publish.py --force: skips ramp cap, daily cap, spacing and stall pause' + b.map(x => `\n${PN[x]}: ${(S.pace[x] || {}).gov || 'blocked on last try'}`).join('');
+  return `<button class="btn ${sz} ${b.length ? 'warn' : ''}" data-publish="1" data-force="1" title="${esc(tip)}">Skip governor${b.length && sz === 'lg' ? ' · ' + b.map(x => PN[x]).join(', ') + ' blocked' : ''}</button>`;
+}
+function onePost(c, todo, sz){
+  return todo.length > 1 ? todo.map(x => { const busy = (c.posting || []).includes(x);
+    return `<button class="btn ${sz}" data-publish="1" data-p="${x}" ${busy || (c.posting || []).length === S.platforms.length ? 'disabled' : ''}>${busy ? PN[x] + ' posting…' : 'Post ' + PN[x]}</button>`; }).join('') : '';
+}
+function detail(c, focus){
+  const p = ptab[c.file] || 'tiktok', cap = (c.captions && c.captions[p]) || c.caption || '';
+  const todo = c.post_to.filter(x => !c.posts[x]);
+  const canDel = ['review','approved','rejected'].includes(c.stage) && !Object.keys(c.posts).length && !c.publishing;
+  const stageBtns = c.stage === 'review' ? `<button class="btn lg good" data-op="approve">Approve <kbd>A</kbd></button><button class="btn lg" data-op="reject" title="Rejects and moves the clip to the Mac Trash">Reject + delete <kbd>X</kbd></button>${focus ? '<button class="btn lg" data-rvnext="1">Skip <kbd>→</kbd></button>' : ''}`
+    : c.stage === 'approved' ? `<button class="btn" data-op="reset">Unapprove <kbd>X</kbd></button>` : c.stage === 'rejected' ? `<button class="btn" data-op="reset">Back to review</button>` : '';
+  return `<div class="det ${focus ? 'glass' : ''}">
+    <div class="tags" style="margin:0"><span class="tag st-${c.stage}">${STL[c.stage]}</span><span class="tag">${sDot(c.streamer)}${esc(c.streamer)}</span><span class="tag ${paidCamp(c) ? 'money' : ''}" title="${esc(c.campaign)}">${esc(campName(c))}</span>
+      <span class="tag n">${c.score}/10</span>${c.snub_end ? `<span class="tag" title="Snub-to-revenge clip, A/B ending">snub · ends on ${c.snub_end}</span>` : ''}<span class="tag n">${c.duration}s</span><span class="ref">cut ${ago(c.peak)} ago</span>${c.onscreen ? `<span class="tag pr-medium">check ${esc(c.onscreen)}</span>` : ''}${!c.hook || !c.caption ? '<span class="tag bad">Missing hook or caption</span>' : ''}</div>
+    <div><div class="lbl">Hooks · first is burned in</div>
+      ${c.hooks.map((h, i) => `<div class="cprow">${i ? `<div class="alt"><kbd>${'QWE'[i] || ''}</kbd><span>${esc(h)}</span></div>` : `<div class="hook">${esc(h) || '<span class="why">none</span>'}</div>`}<button class="cp" data-copy="${esc(h)}">Copy${i ? '' : ' <kbd>Q</kbd>'}</button></div>`).join('')}</div>
+    <div><div class="lbl">Caption <span class="ptabs">${S.platforms.map(x => `<button data-tab="${x}" aria-pressed="${x === p}">${PN[x]}</button>`).join('')}</span></div>
+      <div class="cprow"><div>${esc(cap) || '<span class="why">none</span>'}</div><button class="cp" data-copy="${esc(cap)}">Copy <kbd>C</kbd></button></div></div>
+    <div class="why">${esc(c.reason)}</div>
+    <div class="acts">${stageBtns}${c.stage === 'approved' && todo.length ? `<button class="btn lg pri" data-publish="1" ${c.publishing ? 'disabled' : ''}>${c.publishing ? 'Posting…' : 'Post to all · ' + todo.map(x => PN[x]).join(', ')}</button>` : ''}${c.stage === 'approved' ? onePost(c, todo, '') : ''}${c.stage === 'approved' ? govBtn(c, todo, 'lg') : ''}
+      <a class="btn" href="/media/${esc(c.file)}?dl=1">Download</a>${canDel ? '<button class="btn" data-op="delete">Delete</button>' : ''}</div>
+    <div><div class="lbl">Cover · custom cover for TikTok + IG ${c.cover_busy ? '<span class="tag st-review">Rendering…</span>' : ''}</div>
+      ${c.cover ? `<div class="cv"><a href="/cover/${esc(c.file)}?dl=1" title="Download cover"><img class="main" src="/cover/${esc(c.file)}?v=${c.cover.made || 0}" alt="Cover" loading="lazy"></a>
+        <div><div class="cands">${(c.cover.candidates || []).map(t => `<button class="cand ${t === c.cover.t ? 'on' : ''}" data-cand="${t}" title="Use frame at ${t}s"><img src="/cand/${esc(c.file)}/${t}.jpg" alt="" loading="lazy"></button>`).join('')}</div>
+          <form class="frm" data-form="cover"><input class="in" name="text" value="${esc(c.cover.text || '')}" aria-label="Cover text"><button class="btn sm">Re-render</button></form>
+          <div class="acts" style="margin-top:8px"><a class="btn sm" href="/cover/${esc(c.file)}?dl=1">Download cover</a><button class="btn sm" data-cover="new">New pick + text</button></div></div></div>`
+        : `<button class="btn sm" data-cover="new">${c.cover_busy ? 'Rendering…' : 'Make cover'}</button>`}</div>
+    ${c.stage !== 'rejected' && c.stage !== 'review' ? `<div><div class="lbl">Posts</div>${S.platforms.map(x => postRow(c, x)).join('')}
+      ${Object.keys(c.posts).length ? `<div class="prow"><span class="pn">Paid</span><div class="pinfo"><input type="number" min="0" step="0.01" class="in n paidin" value="${c.paid ?? ''}" placeholder="$0.00" aria-label="Paid amount" style="width:110px"><button class="btn sm" data-op="paid">Save</button>${c.rate == null ? '<span class="why">set the rate in Insights to estimate $</span>' : `<span class="why">est ${usd(c.est)} at $${c.rate}/1k</span>`}</div><span></span></div>` : ''}</div>` : ''}
+  </div>`;
+}
+const playerHtml = (c, auto) => `<div class="player"><video src="/media/${esc(c.file)}" poster="/poster/${esc(c.file)}" controls loop playsinline ${auto ? 'autoplay' : ''}></video></div>`;
+
+/* ---------- review ---------- */
+function rvQueue(){
+  const st = Q().stage, srt = Q().sort;
+  const q = S.clips.filter(c => c.stage === st && (!streamer || c.streamer === streamer));
+  return srt === 'score' ? q.slice().sort((a, b) => b.score - a.score || b.peak - a.peak) : srt === 'old' ? q.slice().sort((a, b) => a.peak - b.peak) : q;
+}
+function renderReview(force){
+  const q = rvQueue(), qs = Q(), ap = view === 'clips';
+  $('filters').innerHTML = `<div class="seg">${[['focus','Focus'],['grid','Cards']].map(([k, l]) => `<button data-rvmode="${k}" aria-pressed="${qs.mode === k}">${l}</button>`).join('')}</div><div class="seg">${[['score','Best first'],['new','Newest'],['old','Oldest']].map(([k, l]) => `<button data-rvsort="${k}" aria-pressed="${qs.sort === k}">${l}</button>`).join('')}</div><span class="sp"></span>${streamerChips()}`;
+  if(!q.length){ $('view').innerHTML = ap ? `<div class="empty"><b>Nothing approved waiting</b>${streamer ? 'No approved clips for ' + esc(streamer) + '.' : 'Approve clips in Review and they land here to post.'}</div>` : `<div class="empty"><b>Review queue is clear</b>${streamer ? 'Nothing waiting for ' + esc(streamer) + '.' : 'The moment finder runs every 5 min.'}</div>`; sigs.review = ''; qs.file = null; return; }
+  if(qs.mode === 'grid'){
+    const gsig = JSON.stringify(['grid', view, qs.sort, streamer, q.map(c => [c.file, c.hook, c.score, c.duration, c.posts, c.publishing, c.posting])]);
+    if(gsig === sigs.review && !force) return;
+    sigs.review = gsig; sigs.reviewFile = null;
+    const y = scrollY;
+    const acts = c => { if(!ap) return `<button class="btn sm good" data-op="approve">Approve</button><button class="btn sm" data-op="reject" title="Rejects and moves the clip to the Mac Trash">Reject</button>`;
+      const todo = c.post_to.filter(x => !c.posts[x]);
+      return `${todo.length ? `<button class="btn sm pri" data-publish="1" ${c.publishing ? 'disabled' : ''}>${c.publishing ? 'Posting…' : 'Post all'}</button>` : ''}${onePost(c, todo, 'sm')}${govBtn(c, todo, 'sm')}<button class="btn sm" data-op="reset" ${c.publishing ? 'disabled' : ''}>Unapprove</button>`; };
+    $('view').innerHTML = `<p class="note">${q.length} ${ap ? 'approved, waiting to post' : 'to review'}. Hover a card to preview, ${ap ? '<kbd>X</kbd> unapprove' : '<kbd>A</kbd> approve, <kbd>X</kbd> reject'}, click to open.</p><div class="grid">${q.slice(0, 200).map(c => `<div class="card pane link" data-file="${esc(c.file)}" data-open="1">
+      <div class="pv"><img src="/poster/${esc(c.file)}" alt="" loading="lazy"><span class="b1">${c.score}/10</span><span class="b2">${c.duration}s</span></div>
+      <div class="bd"><div class="ti">${esc(c.hook) || '(no hook)'}</div><div class="tags" style="margin:0"><span class="tag">${sDot(c.streamer)}${esc(c.streamer)}</span>${paidCamp(c) ? `<span class="tag money">${esc(campName(c))}</span>` : ''}${ap ? Object.keys(c.posts).map(p => `<span class="tag">${PN[p]}</span>`).join('') : ''}<span class="ref">${ago(c.peak)} ago</span></div>
+        <div class="acts">${acts(c)}</div></div></div>`).join('')}</div>${q.length > 200 ? `<p class="note">Showing 200 of ${q.length}.</p>` : ''}`;
+    if(scrollY !== y) scrollTo(0, y);
+    return;
+  }
+  if(!q.some(c => c.file === qs.file)) qs.file = q[0].file;
+  const i = q.findIndex(c => c.file === qs.file), c = q[i];
+  const total = S.clips.filter(x => x.stage !== 'review').length + q.length, done = total - q.length;
+  const sig = JSON.stringify([view, c, ptab[c.file], q.length, i]);
+  if(sig === sigs.review && !force) return;
+  const same = sigs.reviewFile === c.file && $('view').querySelector('.player');
+  sigs.review = sig; sigs.reviewFile = c.file;
+  const bar = ap ? `<div class="rvbar"><b class="n">${i + 1} / ${q.length}</b><span class="ref" style="flex:1">approved, waiting to post</span><button class="btn sm" data-rvprev="1">← Prev</button><button class="btn sm" data-rvnext="1">Next →</button></div>`
+    : `<div class="rvbar"><b class="n">${i + 1} / ${q.length}</b><div class="prog" title="${done} of ${total} clips triaged"><i style="width:${Math.round(done / total * 100)}%"></i></div><span class="ref">${done} triaged · ${q.length} left</span><button class="btn sm" data-rvprev="1">← Prev</button><button class="btn sm" data-rvnext="1">Next →</button></div>`;
+  const keys = ap ? `<div class="keys"><span><kbd>X</kbd> unapprove</span><span><kbd>←</kbd> <kbd>→</kbd> move</span><span><kbd>Space</kbd> play</span><span><kbd>Q</kbd> <kbd>W</kbd> <kbd>E</kbd> copy hook</span><span><kbd>C</kbd> copy caption</span><span><kbd>Z</kbd> undo unapprove</span></div>`
+    : `<div class="keys"><span><kbd>A</kbd> approve</span><span><kbd>X</kbd> reject + delete</span><span><kbd>←</kbd> <kbd>→</kbd> move</span><span><kbd>Space</kbd> play</span><span><kbd>Q</kbd> <kbd>W</kbd> <kbd>E</kbd> copy hook</span><span><kbd>C</kbd> copy caption</span><span><kbd>Z</kbd> undo approve</span></div>`;
+  if(same){ $('rvBar').innerHTML = bar; $('rvDet').innerHTML = detail(c, true) + keys; return; }
+  $('view').innerHTML = `<div id="rvBar">${bar}</div><div class="rv" data-file="${esc(c.file)}">${playerHtml(c, true)}<div id="rvDet">${detail(c, true)}${keys}</div></div>`;
+}
+function rvMove(d){ const q = rvQueue(), qs = Q(), i = q.findIndex(c => c.file === qs.file); if(!q.length) return; qs.file = q[(i + d + q.length) % q.length].file; render(true); }
+async function rvDecide(op){
+  const q = rvQueue(), qs = Q(), i = q.findIndex(c => c.file === qs.file); if(i < 0) return;
+  const f = qs.file, nxt = q[i + 1] || q[i - 1];
+  qs.file = nxt ? nxt.file : null;
+  if(await api('/api/clip', {file:f, op:op === 'reject' ? 'delete' : op})){ if(op === 'approve'){ lastOp = f; toast('Approved · Z to undo'); } else toast('Rejected and deleted · it is in the Mac Trash'); } else { qs.file = f; render(true); }
+}
+async function undo(){ if(!lastOp) return toast('Nothing to undo'); const [f, op] = lastOp.split('|'); lastOp = null; if(op !== 'approve') QS.review.file = f; if(await api('/api/clip', {file:f, op:op || 'reset'})) toast(op === 'approve' ? 'Approved again' : 'Back in review'); }
+
+async function unapprove(f){ if(view === 'clips' && QS.clips.file === f){ const q = rvQueue(), i = q.findIndex(c => c.file === f), nxt = q[i + 1] || q[i - 1]; QS.clips.file = nxt ? nxt.file : null; } if(await api('/api/clip', {file:f, op:'reset'})){ lastOp = f + '|approve'; toast('Unapproved, back in review · Z to undo'); } }
+
+/* ---------- clips list ---------- */
+const inRange = t => range === 'all' || (t && nowS() - t < range * 86400);
+const rangeSeg = () => `<div class="seg">${[['1','24h'],['7','7 days'],['30','30 days'],['all','All']].map(([k, l]) => `<button data-range="${k}" aria-pressed="${range === k}">${l}</button>`).join('')}</div>`;
+
+/* ---------- insights ---------- */
+function hookShape(c){
+  const h = c.hook || '', l = h.toLowerCase();
+  if(!h) return 'No hook';
+  if(l.includes('chat')) return 'Chat reaction';
+  if(h.includes('?')) return 'Question';
+  if(l.includes(c.streamer.toLowerCase())) return 'Names the streamer';
+  if(/\b(he|she|they|his|her)\b/.test(l)) return 'He / she did X';
+  return 'Statement';
+}
+function tally(lo, hi){
+  const T = {cut:0, posts:0, views:0, est:0, paid:0};
+  S.clips.forEach(c => {
+    if(streamer && c.streamer !== streamer) return;
+    if(c.peak >= lo && c.peak < hi) T.cut++;
+    let any = false;
+    Object.values(c.posts).forEach(p => { if(p.posted >= lo && p.posted < hi){ T.posts++; T.views += p.views || 0; T.est += p.est || 0; any = true; } });
+    if(any) T.paid += c.paid || 0;
+  });
+  return T;
+}
+function spark(key){
+  const d0 = new Date(); d0.setHours(24, 0, 0, 0); const end = d0 / 1000, v = [];
+  for(let i = 11; i >= 0; i--) v.push(tally(end - (i + 1) * 86400, end - i * 86400)[key]);
+  const mx = Math.max(...v, 1);
+  return `<div class="spark" title="last 12 days">${v.map(x => `<i style="height:${Math.max(4, x / mx * 100)}%"></i>`).join('')}</div>`;
+}
+function bars(title, rows, total, money){
+  rows = rows.filter(r => r[1] > 0).sort((a, b) => b[1] - a[1]).slice(0, 10);
+  const mx = Math.max(...rows.map(r => r[1]), 1);
+  return `<div class="panel glass"><h3>${title}<em>${money ? usd(total) : fmt(total)}</em></h3>${rows.length ? rows.map(([l, v, col]) => `<div class="bar"><span title="${esc(l)}">${esc(l)}</span><span class="tr"><i style="width:${v / mx * 100}%${col ? ';background:' + col : ''}"></i></span><b>${money ? usd(v) : fmt(v)}</b></div>`).join('') : '<p class="why">No data in this range yet.</p>'}</div>`;
+}
+function renderInsights(){
+  const now = nowS(), d = range === 'all' ? null : range * 86400, cur = tally(d ? now - d : 0, now + 1), prev = d ? tally(now - 2 * d, now - d) : null;
+  const rl = {1:'24h', 7:'7d', 30:'30d'}[range];
+  const delta = (k, money) => { if(!prev) return '<div class="s">all time</div>'; const x = cur[k] - prev[k]; return `<div class="s ${x > 0 ? 'up' : x < 0 ? 'down' : ''}">${x > 0 ? '+' : x < 0 ? '−' : '±'}${money ? usd(Math.abs(x)) : fmt(Math.abs(x))} vs prev. ${rl}</div>`; };
+  const ML = {views:'Views', posts:'Posts', cut:'Clips cut', est:'Est. $'};
+  $('filters').innerHTML = `${rangeSeg()}<div class="seg">${Object.entries(ML).map(([k, l]) => `<button data-metric="${k}" aria-pressed="${metric === k}">${l}</button>`).join('')}</div><span class="sp"></span><button class="btn sm" id="pull" ${S.refreshing ? 'disabled' : ''}>${S.refreshing ? 'Pulling…' : 'Pull views'} <kbd>P</kbd></button>${streamerChips()}`;
+  const lo = d ? now - d : 0, agg = (keyFn, perPost) => { const o = {}; S.clips.forEach(c => { if(streamer && c.streamer !== streamer) return;
+      if(metric === 'cut'){ if(perPost || c.peak < lo) return; const k = keyFn(c); o[k] = (o[k] || 0) + 1; return; }
+      Object.entries(c.posts).forEach(([p, x]) => { if(x.posted < lo) return; const k = keyFn(c, p); o[k] = (o[k] || 0) + (metric === 'posts' ? 1 : metric === 'views' ? x.views || 0 : x.est || 0); }); });
+    return Object.entries(o); };
+  const money = metric === 'est', tot = r => r.reduce((x, y) => x + y[1], 0);
+  const bS = agg(c => c.streamer).map(([k, v]) => [k, v, sColor(k)]), bP = agg((c, p) => PN[p], true), bH = agg(hookShape), bV = agg(c => c.cover ? (c.cover.variant || 'standard') : 'no cover'), bC = agg(c => campName(c));
+  const ev = [];
+  S.clips.forEach(c => { if(streamer && c.streamer !== streamer) return; if(inRange(c.peak)) ev.push({t:c.peak, c, k:'cut'}); Object.entries(c.posts).forEach(([p, x]) => { if(inRange(x.posted)) ev.push({t:x.posted, c, k:'posted', p, x}); if(x.submitted && x.submitted_at && inRange(x.submitted_at)) ev.push({t:x.submitted_at, c, k:'submitted', p, x}); }); });
+  ev.sort((a, b) => b.t - a.t);
+  const days = {}; ev.slice(0, feedN).forEach(e => { const k = new Date(e.t * 1000).toDateString(); (days[k] = days[k] || []).push(e); });
+  const dayLbl = k => { const t = new Date().toDateString(), y = new Date(Date.now() - 864e5).toDateString(); return k === t ? 'Today' : k === y ? 'Yesterday' : new Date(k).toLocaleDateString([], {weekday:'long'}); };
+  const feed = Object.entries(days).map(([k, es]) => `<div class="day"><div><h4>${dayLbl(k)}</h4><div class="d">${new Date(k).toLocaleDateString([], {day:'numeric', month:'short'})} · ${es.length} events</div></div><div>${es.map(e => `<div class="ev pane link" data-file="${esc(e.c.file)}" data-open="1"><span class="tm">${new Date(e.t * 1000).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', hour12:false})}</span><div><div class="ti" style="font-size:14px">${e.k === 'posted' ? `Posted to ${PN[e.p]}` : e.k === 'submitted' ? `Submitted ${PN[e.p]} to ${esc(campName(e.c))}` : 'Cut'}: ${esc(e.c.hook)}</div>
+      <div class="tags"><span class="tag ${e.k === 'posted' ? 'st-posted' : e.k === 'submitted' ? 'ok' : ''}">${e.k === 'posted' ? 'Posted' : e.k === 'submitted' ? 'Submitted' : 'Cut'}</span><span class="tag">${sDot(e.c.streamer)}${esc(e.c.streamer)}</span>${e.k === 'submitted' ? '' : e.k === 'posted' ? `<span class="tag n">${e.x.views != null ? fmt(e.x.views) + ' views' : 'no views yet'}</span>${paidCamp(e.c) ? `<span class="tag ${e.x.submitted ? 'ok' : 'pr-high'}">${e.x.submitted ? 'Submitted' : 'Not submitted'}</span>` : ''}` : `<span class="tag n">${e.c.score}/10</span><span class="tag st-${e.c.stage}">${STL[e.c.stage]}</span>`}</div></div></div>`).join('')}</div></div>`).join('');
+  const m = S.moments, found = Object.values(m).reduce((x, y) => x + y, 0);
+  $('view').innerHTML = `<div class="kpis k5">
+      <div class="kpi glass"><div class="l">Clips cut</div><div class="v">${cur.cut}</div>${delta('cut')}${spark('cut')}</div>
+      <div class="kpi glass"><div class="l">Posts</div><div class="v">${cur.posts}</div>${delta('posts')}${spark('posts')}</div>
+      <div class="kpi glass"><div class="l">Views</div><div class="v">${fmt(cur.views)}</div>${delta('views')}${spark('views')}</div>
+      <div class="kpi glass"><div class="l">Est. earned</div><div class="v" style="color:var(--accent)">${usd(cur.est)}</div>${delta('est', 1)}${spark('est')}</div>
+      <div class="kpi glass"><div class="l">Paid out</div><div class="v">${usd(cur.paid)}</div><div class="s">${cur.est ? Math.round(cur.paid / cur.est * 100) + '% of est.' : 'nothing owed yet'}</div><div class="s">${found} moments · ${m.rejected || 0} judged weak</div></div>
+    </div>
+    <div class="cols"><div>
+      <div class="panel glass"><h3>Campaign money<em>rate is $ per 1k views</em></h3><div class="tw"><table><thead><tr><th>Streamer</th><th>Campaign</th><th class="r">Rate</th><th class="r">Cut</th><th class="r">Posted</th><th class="r">Views</th><th class="r">Est.</th><th class="r">Paid</th><th class="r">$/clip</th></tr></thead><tbody>
+        ${S.campaigns.filter(x => !streamer || x.streamer === streamer).map(x => `<tr><td><span class="tag">${sDot(x.streamer)}${esc(x.streamer)}</span></td><td>${x.paid_campaign ? esc(x.campaign.split('(')[0]) : '<span class="why">none</span>'}${x.window ? ` <span class="ref">${x.window}m window</span>` : ''}</td>
+          <td class="r"><input class="in n rate" type="number" min="0" step="0.01" data-streamer="${esc(x.streamer)}" value="${x.rate ?? ''}" placeholder="?" aria-label="${esc(x.streamer)} rate per 1k"></td>
+          <td class="r n">${x.cut}</td><td class="r n">${x.posted}</td><td class="r n">${fmt(x.views)}</td><td class="r n" style="color:var(--accent);font-weight:600">${usd(x.est)}</td><td class="r n">${usd(x.paid)}</td><td class="r n">${x.posted ? usd(x.est / x.posted) : '–'}</td></tr>`).join('')}</tbody></table></div></div>
+      <div class="grp">Activity <em>${ev.length}</em></div>${feed || '<div class="empty"><b>No activity in this range</b>Widen the range.</div>'}${ev.length > feedN ? `<button class="btn" id="moreFeed">Show more</button>` : ''}
+    </div><div>
+      ${bars(ML[metric] + ' by streamer', bS, tot(bS), money)}
+      ${metric === 'cut' ? '' : bars(ML[metric] + ' by platform', bP, tot(bP), money)}
+      ${bars(ML[metric] + ' by hook shape', bH, tot(bH), money)}
+      ${bars(ML[metric] + ' by cover style', bV, tot(bV), money)}
+      ${bars(ML[metric] + ' by campaign', bC, tot(bC), money)}
+      <div class="panel glass"><h3>Posting pace<em>median views, posts aged 48h+</em></h3>${Object.entries(S.pace).map(([p, x]) => `<div class="bar" style="grid-template-columns:70px minmax(0,1fr) auto"><span>${PN[p]}</span><span class="why" style="font-size:12px">${x.day}/${x.cap ?? '∞'} today · ${esc(x.verdict)}</span><b>${x.median == null ? '–' : fmt(x.median)}</b></div>`).join('')}</div>
+      <div class="panel glass"><h3>Recorders</h3><div class="tw"><table><tbody>${S.recorders.map(r => `<tr><td><b>${esc(r.name)}</b></td><td><span class="tag ${r.state === 'recording' ? 'ok' : r.state === 'offline' ? '' : 'bad'}">${r.state}</span></td><td class="n r">${ago(r.last_seg)}</td></tr>`).join('')}<tr><td><b>moment finder</b></td><td><span class="tag">every 5 min</span></td><td class="n r">${ago(S.highlight.last)}</td></tr></tbody></table></div></div>
+    </div></div>
+    <p class="note">Hook shape is auto-tagged from the hook text. With ${S.clips.filter(c => Object.keys(c.posts).length).length} posted clips the breakdowns are thin, they sharpen as posts age.</p>`;
+}
+
+/* ---------- radar + campaigns ---------- */
+function renderRadar(){
+  let R = S.radar.filter(r => !streamer || r.streamer === streamer);
+  const cuttable = r => !(r.reach && !r.own) && !['cut','on desk','rejected','no own footage'].includes(r.state);
+  if(cuttableOnly) R = R.filter(cuttable);
+  R = R.filter(r => r.at && nowS() - r.at <= 48 * 3600);
+  if(radarSort === 'new') R = R.slice().sort((a, b) => b.at - a.at); else R = R.slice().sort((a, b) => b.score - a.score || b.at - a.at);
+  $('filters').innerHTML = `<div class="seg">${[['list','List'],['grid','Cards']].map(([k, l]) => `<button data-radmode="${k}" aria-pressed="${radarMode === k}">${l}</button>`).join('')}</div><div class="seg">${[['score','Top score'],['new','Most recent']].map(([k, l]) => `<button data-radsort="${k}" aria-pressed="${radarSort === k}">${l}</button>`).join('')}</div><button class="chipb" data-rfilter="1" aria-pressed="${cuttableOnly}">Cuttable only</button><button class="btn sm" data-rpull="1" ${S.radar_pulling ? 'disabled' : ''}>${S.radar_pulling ? 'Pulling…' : 'Pull viewer clips'}</button><span class="sp"></span>${streamerChips()}`;
+  const note = `<p class="note">Viewer clips from the last 48h as a virality signal only. We cut the moment from our own footage, never their file.</p>`;
+  if(radarMode === 'grid'){
+    $('view').innerHTML = note + (R.length ? `<div class="grid wide">${R.slice(0, 100).map(r => {
+      const busy = r.state === 'queued' || r.state === 'cutting', blocked = r.reach && !r.own, done = ['cut','on desk','rejected','no own footage'].includes(r.state);
+      return `<div class="card pane rcard" data-rid="${esc(r.id)}" data-streamer="${esc(r.streamer)}">
+        <div class="pv wide">${r.thumb ? `<img src="${esc(r.thumb)}" alt="" loading="lazy">` : ''}<span class="b1 ${r.score >= 80 ? 'hot' : r.score >= 65 ? 'warm' : ''}">${r.score}/100</span><span class="b2">${ago(r.at)} ago</span></div>
+        <div class="bd"><div class="ti">${esc(r.title)}</div><div class="su n">${fmt(r.views)} views · ${fmt(Math.round(r.vph))}/hr · ${r.clippers} clipper${r.clippers > 1 ? 's' : ''}${r.chat_lift ? ` · chat ${r.chat_lift}x` : ''}</div>
+          <div class="tags" style="margin:0"><span class="tag">${sDot(r.streamer)}${esc(r.streamer)}</span>${r.reach ? '<span class="tag money">Reach</span>' : ''}<span class="tag">${r.own ? 'our recording' : r.reach ? 'own footage only' : 'stream VOD'}</span>${r.state ? `<span class="tag ${r.state === 'error' ? 'bad' : ''}" title="${esc(r.error || '')}">${RSTATE[r.state] || esc(r.state)}</span>` : ''}</div>
+          <div class="acts">${blocked || done ? '' : `<button class="btn sm pri" data-rcut="1" ${busy ? 'disabled' : ''}>${busy ? 'Cutting…' : 'Cut it'}</button>`}${r.file ? `<button class="btn sm" data-file="${esc(r.file)}" data-open="1">Our clip</button>` : ''}<a class="btn sm" href="${esc(r.page)}" target="_blank" rel="noopener">Viewer ↗</a></div></div></div>`; }).join('')}</div>${R.length > 100 ? `<p class="note">Top 100 of ${R.length}, ${radarSort === 'new' ? 'newest first' : 'by score'}.</p>` : ''}`
+      : '<div class="empty"><b>No viewer clips in the last 48h</b>Pull viewer clips to refresh.</div>');
+    return;
+  }
+  $('view').innerHTML = note + (R.length ? R.slice(0, 100).map(r => {
+    const busy = r.state === 'queued' || r.state === 'cutting', blocked = r.reach && !r.own, done = ['cut','on desk','rejected','no own footage'].includes(r.state);
+    return `<div class="row pane" data-rid="${esc(r.id)}" data-streamer="${esc(r.streamer)}">${r.thumb ? `<img class="th wide" src="${esc(r.thumb)}" alt="" loading="lazy">` : '<span></span>'}
+      <div><div class="ti">${esc(r.title)}</div><div class="su n">${fmt(r.views)} views · ${fmt(Math.round(r.vph))}/hr · ${r.clippers} clipper${r.clippers > 1 ? 's' : ''}${r.chat_lift ? ` · chat ${r.chat_lift}x` : ''}</div>
+        <div class="tags"><span class="tag ${r.score >= 80 ? 'pr-critical' : r.score >= 65 ? 'pr-high' : ''} n">${r.score}/100</span><span class="tag">${sDot(r.streamer)}${esc(r.streamer)}</span>${r.reach ? '<span class="tag money">Reach</span>' : ''}<span class="tag">${r.own ? 'our recording' : r.reach ? 'own footage only' : 'stream VOD'}</span>${r.state ? `<span class="tag ${r.state === 'error' ? 'bad' : ''}" title="${esc(r.error || '')}">${RSTATE[r.state] || esc(r.state)}</span>` : ''}</div></div>
+      <div class="rt"><span class="age">${ago(r.at)} ago</span><div class="acts">${blocked || done ? '' : `<button class="btn sm pri" data-rcut="1" ${busy ? 'disabled' : ''}>${busy ? 'Cutting…' : 'Cut it'}</button>`}${r.file ? `<button class="btn sm" data-file="${esc(r.file)}" data-open="1">Our clip</button>` : ''}<a class="btn sm" href="${esc(r.page)}" target="_blank" rel="noopener">Viewer clip ↗</a></div></div></div>`; }).join('') + (R.length > 100 ? `<p class="note">Top 100 of ${R.length}, ${radarSort === 'new' ? 'newest first' : 'by score'}.</p>` : '')
+    : '<div class="empty"><b>No viewer clips in the last 48h</b>Pull viewer clips to refresh.</div>');
+}
+function renderCampaigns(){
+  const R = S.scout.rows || [];
+  $('filters').innerHTML = `<span class="note" style="margin:0">${S.scout.live || 0} live campaigns scanned · last run ${S.scout.at ? ago(S.scout.at) + ' ago' : 'never'} · the scout never joins</span><span class="sp"></span><button class="btn sm" data-scoutrun="1" ${S.scouting ? 'disabled' : ''}>${S.scouting ? 'Scouting…' : 'Scout now'}</button>`;
+  $('view').innerHTML = R.length ? R.map(r => `<div class="row pane"><span></span>
+    <div><div class="ti">${esc(r.title)}</div><div class="su">${esc(r.why)}</div>
+      <div class="tags">${r.new ? '<span class="tag ok">New</span>' : ''}${r.joined ? '<span class="tag st-approved">Joined</span>' : ''}<span class="tag">${r.lane === 'gta' ? 'GTA' : 'Big name'}</span><span class="tag money n">${esc(r.pay)}</span><span class="tag">${esc(r.streamer || r.brand)}</span><span class="tag">${esc(r.source)}</span>${r.application ? '<span class="tag pr-medium">Apply</span>' : ''}${(r.platforms || []).map(p => `<span class="tag">${PN[p] || esc(p)}</span>`).join('')}</div></div>
+    <div class="rt"><span class="age n">${r.budget_left != null ? '$' + fmt(r.budget_left) + ' left' : ''}${r.creators != null ? ' · ' + r.creators + ' clippers' : ''}</span><div class="acts">${r.brief ? `<a class="btn sm" href="obsidian://open?path=${encodeURIComponent(r.brief)}">Brief</a>` : ''}<a class="btn sm" href="${esc(r.url)}" target="_blank" rel="noopener">CR ↗</a>${r.reach_url ? `<a class="btn sm" href="${esc(r.reach_url)}" target="_blank" rel="noopener">Reach ↗</a>` : ''}</div></div></div>`).join('')
+    : '<div class="empty"><b>No scouted campaigns yet</b>Run the scout, first run takes a few minutes.</div>';
+}
+
+/* ---------- drawer, find, help ---------- */
+function renderDrawer(force){
+  const c = drawerFile && clip(drawerFile), host = $('drawerHost');
+  if(!c){ host.innerHTML = ''; drawerFile = null; sigs.drawer = ''; return; }
+  const sig = JSON.stringify([c, ptab[c.file]]);
+  if(sig === sigs.drawer && !force) return;
+  const same = sigs.drawerFile === c.file && host.querySelector('.player');
+  sigs.drawer = sig; sigs.drawerFile = c.file;
+  if(same){ $('drDet').innerHTML = detail(c, false); return; }
+  host.innerHTML = `<div class="scrim" data-close="1"></div><aside class="drawer" data-file="${esc(c.file)}"><button class="ic dclose" data-close="1" aria-label="Close">✕</button><div class="rv">${playerHtml(c, false)}<div id="drDet">${detail(c, false)}</div></div></aside>`;
+}
+function findResults(){
+  const toks = findQ.trim().split(/\s+/).filter(Boolean), f = {}, words = [];
+  toks.forEach(t => { const m = t.match(/^(streamer|status|platform|after|has|campaign|score):(.+)$/i); if(m) f[m[1].toLowerCase()] = m[2].toLowerCase(); else words.push(t.toLowerCase()); });
+  const aft = f.after && f.after.match(/^(\d+)([hd])$/), since = aft ? nowS() - aft[1] * (aft[2] === 'h' ? 3600 : 86400) : 0;
+  const hit = s => words.every(w => s.toLowerCase().includes(w)), out = [];
+  S.clips.forEach(c => {
+    if(f.streamer && !c.streamer.toLowerCase().includes(f.streamer)) return;
+    if(f.status && !(c.stage.startsWith(f.status) || STL[c.stage].toLowerCase().includes(f.status))) return;
+    if(f.platform && !Object.keys(c.posts).some(p => p.startsWith(f.platform) || PN[p].toLowerCase().startsWith(f.platform) || (f.platform === 'tt' && p === 'tiktok') || (f.platform === 'yt' && p === 'youtube') || (f.platform === 'ig' && p === 'instagram'))) return;
+    if(since && c.peak < since) return;
+    if(f.has === 'cover' && !c.cover) return;
+    if(f.has === 'views' && !c.views) return;
+    if(f.has === 'posts' && !Object.keys(c.posts).length) return;
+    if(f.campaign && !(f.campaign === 'paid' ? paidCamp(c) : c.campaign.toLowerCase().includes(f.campaign))) return;
+    if(f.score && c.score < parseFloat(f.score.replace(/[^\d.]/g, ''))) return;
+    if(!hit([c.hook, c.caption, c.streamer, c.file, c.campaign, ...c.hooks].join(' '))) return;
+    out.push({k:'clip', t:c.hook || c.file, s:`${c.streamer} · ${STL[c.stage]} · ${c.score}/10 · ${ago(c.peak)} ago`, file:c.file});
+  });
+  if(!f.status && !f.platform && !f.has && !f.score && words.length){
+    (S.scout.rows || []).forEach(r => { if(hit([r.title, r.streamer, r.brand, r.why].join(' '))) out.push({k:'campaign', t:r.title, s:`${r.pay} · ${r.source}`, url:r.url}); });
+    S.radar.forEach(r => { if((!f.streamer || r.streamer.toLowerCase().includes(f.streamer)) && hit(r.title + ' ' + r.streamer)) out.push({k:'radar', t:r.title, s:`${r.streamer} · ${r.score}/100 · ${fmt(r.views)} views`, url:r.page}); });
+  }
+  return out.slice(0, 40);
+}
+function renderOv(){
+  const host = $('ovHost');
+  if(helpOpen){ host.innerHTML = `<div class="scrim" data-close="1"></div><div class="fov" data-close="1"><div class="help glass"><h2>Shortcuts</h2>
+    ${[['/ or ⌘K','Super Find'],['1 – 6','Outstanding · Review · Clips · Insights · Radar · Campaigns'],['A  X','Approve · reject (Review, or open drawer)'],['X','Unapprove an approved clip (open drawer, or hover its row)'],['G','Review + Clips: toggle Focus / Cards'],['← →','Previous · next clip in Review + Clips (Focus)'],['Space','Play / pause'],['Q W E','Copy hook 1 · 2 · 3'],['C','Copy caption'],['Z','Undo last approve or unapprove (rejects go to the Mac Trash)'],['P','Pull views'],['R','Refresh'],['T','Theme'],['esc','Close drawer, find or this']].map(([k, l]) => `<div><span>${l}</span><kbd>${k}</kbd></div>`).join('')}
+    <div><span>Find syntax</span><span class="n" style="font-size:11.5px;text-align:right">streamer:lacy status:review platform:tt<br>after:24h has:cover campaign:paid score:8</span></div></div></div>`; return; }
+  if(!findOpen){ host.innerHTML = ''; return; }
+  const R = findResults(); findI = Math.min(findI, Math.max(R.length - 1, 0));
+  const res = R.length ? R.map((r, i) => `<div class="fr ${i === findI ? 'on' : ''}" data-fi="${i}"><span class="k">${r.k}</span><span class="t">${esc(r.t)}</span><span class="ref">${esc(r.s)}</span></div>`).join('') : `<div class="fr"><span></span><span class="why">${findQ.trim() ? 'No matches' : 'Type to search clips, campaigns and viewer clips'}</span></div>`;
+  if($('findIn')){ $('findRes').innerHTML = res; return; }
+  host.innerHTML = `<div class="scrim" data-close="1"></div><div class="fov" data-close="1"><div class="fbox glass"><input id="findIn" placeholder="Super Find" autocomplete="off" spellcheck="false" aria-label="Super Find"><div class="fres" id="findRes">${res}</div>
+    <div class="fhint"><span>↑ ↓ move</span><span>↵ open</span><span>esc close</span><span>streamer:lacy · status:review · platform:tt · after:24h · has:cover · campaign:paid · score:8</span></div></div></div>`;
+  $('findIn').value = findQ; $('findIn').focus();
+}
+function findGo(){ const r = findResults()[findI]; if(!r) return; findOpen = false; findQ = ''; renderOv(); if(r.file){ drawerFile = r.file; renderDrawer(true); } else window.open(r.url, '_blank', 'noopener'); }
+
+/* ---------- shell ---------- */
+function render(force){
+  if(!S) return;
+  const a = document.activeElement, typing = a && (a.tagName === 'INPUT' || a.tagName === 'SELECT') && (a.closest('#view') || a.closest('#drawerHost'));
+  const A = actions(), crit = A.filter(x => x.pr === 'critical').length;
+  const counts = {now:A.length, review:S.clips.filter(c => c.stage === 'review').length, clips:S.clips.filter(c => c.stage === 'approved').length, radar:S.radar.length, campaigns:(S.scout.rows || []).filter(r => r.new && !r.joined).length};
+  $('tabs').innerHTML = VIEWS.map(([k, l], i) => `<a href="#/${k}" class="${k === view ? 'on' : ''} ${k === 'now' && crit ? 'hot' : ''}"><i>${i + 1}</i>${l}${counts[k] != null ? `<em>${counts[k]}</em>` : ''}</a>`).join('');
+  $('leds').innerHTML = S.recorders.map(r => `<span class="led ${{recording:'ok', stalled:'bad', stopped:'bad'}[r.state] || ''}" title="${esc(r.name)}: ${r.state}"></span>`).join('');
+  $('liveTxt').textContent = `${S.recorders.filter(r => r.state === 'recording').length} live · ${new Date(S.now * 1000).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', hour12:false})}`;
+  if(!typing || force){
+    if(isQ()) renderReview(force);
+    else { sigs.review = ''; sigs.reviewFile = null; const fn = {now:renderNow, insights:renderInsights, radar:renderRadar, campaigns:renderCampaigns}[view]; const sig = JSON.stringify([view, streamer, range, prio, metric, cuttableOnly, radarMode, radarSort, feedN, S.clips, S.radar, S.scout, S.recorders, S.pace, S.refreshing, S.scouting, S.radar_pulling]); if(sig !== sigs.view || force){ sigs.view = sig; const y = scrollY; fn(); if(scrollY !== y) scrollTo(0, y); } }
+    renderDrawer(force && !typing);
+  }
+}
+function route(){ const h = location.hash.replace('#/', ''); view = VIEWS.some(v => v[0] === h) ? h : 'now'; sigs.view = ''; if(S) render(true); window.scrollTo(0, 0); }
+function setTheme(t){ document.documentElement.dataset.theme = t; LS('theme', t); }
+setTheme(LS('theme') || 'light');
+const copy = async (txt, what) => { if(!txt) return; await navigator.clipboard.writeText(txt); toast(what + ' copied'); };
+const activeFile = () => drawerFile || (isQ() ? (Q().mode === 'grid' ? hoverFile : Q().file) : null);
+
+document.addEventListener('click', async e => {
+  const t = e.target.closest('button, a, [data-open], [data-close], [data-fi]'); if(!t) return;
+  if(t.dataset.close !== undefined && (e.target === t || t.tagName === 'BUTTON')){ if(helpOpen || findOpen){ helpOpen = findOpen = false; renderOv(); } else { drawerFile = null; renderDrawer(true); } return; }
+  if(t.dataset.fi !== undefined){ findI = +t.dataset.fi; return findGo(); }
+  if(t.id === 'findBar'){ findOpen = true; findI = 0; return renderOv(); }
+  if(t.id === 'themeBtn') return setTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light');
+  if(t.id === 'helpBtn'){ helpOpen = true; return renderOv(); }
+  if(t.id === 'moreFeed'){ feedN += 60; return render(true); }
+  if(t.id === 'pull'){ api('/api/refresh', {}); toast('Pulling views in the background'); setTimeout(load, 20000); return; }
+  if(t.dataset.prio !== undefined){ prio = t.dataset.prio; return render(true); }
+  if(t.dataset.range){ range = t.dataset.range; LS('range', range); return render(true); }
+  if(t.dataset.metric){ metric = t.dataset.metric; return render(true); }
+  if(t.dataset.rvsort){ const qs = Q(); qs.sort = t.dataset.rvsort; LS(qs.ls + 'Sort', qs.sort); qs.file = null; return render(true); }
+  if(t.dataset.rvmode){ const qs = Q(); qs.mode = t.dataset.rvmode; LS(qs.ls + 'Mode', qs.mode); sigs.review = ''; return render(true); }
+  if(t.dataset.rvnext) return rvMove(1);
+  if(t.dataset.rvprev) return rvMove(-1);
+  if(t.dataset.rfilter){ cuttableOnly = !cuttableOnly; return render(true); }
+  if(t.dataset.radmode){ radarMode = t.dataset.radmode; LS('radarMode', radarMode); return render(true); }
+  if(t.dataset.radsort){ radarSort = t.dataset.radsort; LS('radarSort', radarSort); return render(true); }
+  if(t.dataset.rpull){ await api('/api/radar/pull', {}); toast('Pulling viewer clips, a couple of minutes'); setTimeout(load, 90000); return; }
+  if(t.dataset.scoutrun){ await api('/api/scout', {}); toast('Scouting Content Rewards + Reach, a few minutes'); setTimeout(load, 180000); return; }
+  if(t.dataset.rcut){ const el = t.closest('[data-rid]'); t.disabled = true; await api('/api/radar/cut', {streamer:el.dataset.streamer, id:el.dataset.rid}); toast('Cutting from our footage, about 3 minutes'); setTimeout(load, 60000); return; }
+  if(t.dataset.copy !== undefined) return copy(t.dataset.copy, 'Text');
+  const host = t.closest('[data-file]'), file = host && host.dataset.file;
+  if(t.dataset.tab && file){ ptab[file] = t.dataset.tab; return render(true); }
+  if(t.dataset.cand !== undefined && file){ await api('/api/cover', {file, t:parseFloat(t.dataset.cand)}); toast('Re-rendering cover, about a minute'); setTimeout(load, 60000); return; }
+  if(t.dataset.cover && file){ await api('/api/cover', {file}); toast('Making cover, about 2 minutes'); setTimeout(load, 120000); return; }
+  if(t.dataset.publish && file){
+    const one = t.dataset.p, c = clip(file), todo = one ? PN[one] : c.post_to.filter(x => !c.posts[x]).map(x => PN[x]).join(', ');
+    const force = !!t.dataset.force;
+    if(one){
+      if(!confirm(`Post this ${c.streamer} clip publicly to ${todo} now, then auto-submit the link to the campaign?` + (c.onscreen ? `\n\nCheck the clip has the ${c.onscreen}.` : ''))) return;
+      await api('/api/publish', {file, platform:one}); toast(`Posting to ${todo}. The link appears when it goes live`); return;
+    }
+    if(force){
+      const blocked = govBlocked(c, c.post_to.filter(x => !c.posts[x])).map(x => `${PN[x]}: ${(S.pace[x] || {}).gov || c.publish[x].error.slice(10)}`).join('\n') || 'nothing, the governor would let these through';
+      if(!confirm(`SKIP THE GOVERNOR for this ${c.streamer} clip?\n\nBlocked right now:\n${blocked}\n\nThis ignores the ramp cap, daily cap, spacing and any stall pause on ${todo}. You accept the throttle risk on a new account. Posts publicly, then auto-submits each link.` + (c.onscreen ? `\n\nCheck the clip has the ${c.onscreen}.` : ''))) return;
+    } else if(!confirm(`Post this ${c.streamer} clip publicly to ${todo} now, then auto-submit each link to the campaign?` + (c.onscreen ? `\n\nCheck the clip has the ${c.onscreen}.` : ''))) return;
+    await api('/api/publish', {file, force}); toast(force ? 'Posting, governor skipped. Links appear as each platform goes live' : 'Posting. Links appear as each platform goes live'); return;
+  }
+  if(t.dataset.resubmit && file){ await api('/api/submit', {file, platform:t.dataset.resubmit}); toast('Retrying submit'); return; }
+  const op = t.dataset.op;
+  if(op && file){
+    if((op === 'approve' || op === 'reject') && view === 'review' && !drawerFile){ if(Q().mode === 'grid') Q().file = file; return rvDecide(op); }
+    if(op === 'reset' && clip(file).stage === 'approved') return unapprove(file);
+    if(op === 'unpost' && !confirm(`Remove the ${PN[t.dataset.p]} post link?`)) return;
+    if(op === 'delete' && !confirm('Delete this clip? The video, cover and notes go to the Mac Trash.')) return;
+    const body = {file, op, platform:t.dataset.p};
+    if(op === 'submitted') body.value = t.dataset.v === '1';
+    if(op === 'paid') body.amount = host.querySelector('.paidin').value;
+    if(op === 'reject'){ body.op = 'delete'; if(drawerFile === file) drawerFile = null; }
+    if(await api('/api/clip', body)){ if(op === 'approve'){ lastOp = file; toast('Approved · Z to undo'); } else if(op === 'reject') toast('Rejected and deleted · it is in the Mac Trash'); }
+    return;
+  }
+  if(t.dataset.open && file && !e.target.closest('input, form')){ drawerFile = file; renderDrawer(true); }
+});
+let hoverFile = null;
+let pvEl = null;
+function setPv(card){
+  if(pvEl === card) return;
+  if(pvEl){ const o = pvEl.querySelector('video'); if(o) o.remove(); }
+  pvEl = card;
+  const pv = card && card.querySelector('.pv'); if(!pv) return;
+  const v = document.createElement('video'); v.src = '/media/' + card.dataset.file; v.muted = true; v.loop = true; v.playsInline = true; v.autoplay = true;
+  pv.appendChild(v); v.play().catch(() => {});
+}
+document.addEventListener('mouseover', e => { const r = e.target.closest('#view .row[data-file], #view .card[data-file]'); hoverFile = r ? r.dataset.file : null; setPv(r && r.classList.contains('card') ? r : null); });
+document.addEventListener('submit', e => {
+  e.preventDefault();
+  const f = e.target, file = f.closest('[data-file]').dataset.file;
+  if(f.dataset.form === 'cover'){ api('/api/cover', {file, text:f.text.value}); toast('Re-rendering cover, about a minute'); setTimeout(load, 60000); }
+  else if(f.dataset.form === 'post'){ document.activeElement.blur(); api('/api/clip', {file, op:'post', platform:f.dataset.p, url:f.url.value}); }
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if(t.classList.contains('vin')){ t.blur(); api('/api/clip', {file:t.closest('[data-file]').dataset.file, op:'views', platform:t.dataset.p, views:t.value}); }
+  else if(t.classList.contains('rate')){ t.blur(); api('/api/rate', {streamer:t.dataset.streamer, rate:t.value}); }
+  else if(t.id === 'streamerSel'){ streamer = t.value; QS.review.file = QS.clips.file = null; t.blur(); render(true); }
+});
+document.addEventListener('input', e => { if(e.target.id === 'findIn'){ findQ = e.target.value; findI = 0; renderOv(); } });
+document.addEventListener('keydown', e => {
+  const k = e.key, inField = ['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName);
+  if((e.metaKey || e.ctrlKey) && k.toLowerCase() === 'k'){ e.preventDefault(); findOpen = true; helpOpen = false; findI = 0; return renderOv(); }
+  if(k === 'Escape'){ if(helpOpen || findOpen){ helpOpen = findOpen = false; renderOv(); } else if(drawerFile){ drawerFile = null; renderDrawer(true); } else if(inField) e.target.blur(); return; }
+  if(findOpen){ const n = findResults().length;
+    if(k === 'ArrowDown'){ e.preventDefault(); findI = Math.min(findI + 1, n - 1); renderOv(); }
+    else if(k === 'ArrowUp'){ e.preventDefault(); findI = Math.max(findI - 1, 0); renderOv(); }
+    else if(k === 'Enter'){ e.preventDefault(); findGo(); }
+    return; }
+  if(inField || e.metaKey || e.ctrlKey || e.altKey) return;
+  if(k === '/'){ e.preventDefault(); findOpen = true; findI = 0; return renderOv(); }
+  if(k === '?'){ helpOpen = true; return renderOv(); }
+  if(/^[1-6]$/.test(k)){ drawerFile = null; renderDrawer(true); location.hash = '#/' + VIEWS[k - 1][0]; return; }
+  const kl = k.toLowerCase();
+  if(kl === 'g' && isQ() && !drawerFile){ const qs = Q(); qs.mode = qs.mode === 'grid' ? 'focus' : 'grid'; LS(qs.ls + 'Mode', qs.mode); sigs.review = ''; return render(true); }
+  if(kl === 't') return setTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light');
+  if(kl === 'r'){ load(); return toast('Refreshed'); }
+  if(kl === 'p'){ api('/api/refresh', {}); toast('Pulling views in the background'); setTimeout(load, 20000); return; }
+  if(kl === 'z') return undo();
+  if(kl === 'x' && !(view === 'review' && !drawerFile)){ const xf = activeFile() || hoverFile, xc = xf && clip(xf); if(xc && xc.stage === 'approved' && !xc.publishing) return unapprove(xf); }
+  const f = activeFile(), c = f && clip(f); if(!c) return;
+  const vid = document.querySelector(drawerFile ? '#drawerHost video' : '#view video');
+  if(k === ' '){ e.preventDefault(); if(vid) vid.paused ? vid.play() : vid.pause(); return; }
+  if(isQ() && Q().mode === 'focus' && !drawerFile){ if(k === 'ArrowRight' || kl === 'j'){ e.preventDefault(); return rvMove(1); } if(k === 'ArrowLeft' || kl === 'k'){ e.preventDefault(); return rvMove(-1); } }
+  if(c.stage === 'review' && (kl === 'a' || kl === 'x')){
+    const op = kl === 'a' ? 'approve' : 'reject';
+    if(view === 'review' && !drawerFile){ if(Q().mode === 'grid') Q().file = f; return rvDecide(op); }
+    if(op === 'reject') drawerFile = null;
+    api('/api/clip', {file:f, op:op === 'reject' ? 'delete' : op}).then(ok => { if(ok){ if(op === 'approve'){ lastOp = f; toast('Approved · Z to undo'); } else toast('Rejected and deleted · it is in the Mac Trash'); } }); return;
+  }
+  const hi = 'qwe'.indexOf(kl); if(hi >= 0 && c.hooks[hi]) return copy(c.hooks[hi], 'Hook ' + (hi + 1));
+  if(kl === 'c') return copy((c.captions && c.captions[ptab[f] || 'tiktok']) || c.caption, 'Caption');
+});
+setInterval(() => document.querySelectorAll('.age[data-due]').forEach(b => { const left = b.dataset.due - nowS(); b.textContent = left > 0 ? Math.ceil(left / 60) + 'm left' : ago(+b.dataset.due) + ' late'; b.className = 'age ' + (left < 600 ? 'hot' : 'warm'); }), 15000);
+window.addEventListener('hashchange', route);
+route(); load(); setInterval(load, 30000);
+</script>
+</body>
+</html>

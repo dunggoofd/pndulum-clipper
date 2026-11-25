@@ -1,0 +1,12 @@
+.env
+config.yaml
+rules/*.md
+!rules/README.md
+logs/
+.venv/
+__pycache__/
+*.pyc
+overlay/out/
+overlay/verify/
+overlay/template/node_modules/
+.DS_Store

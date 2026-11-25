@@ -1,0 +1,56 @@
+# Copy to config.yaml (git-ignored) and fill in. ~ is expanded.
+root: ~/clipper                 # data folder: recordings, clips, ledgers, logs of the pipeline
+archive_volume: ""              # empty = record to `live` only. Set to a mounted drive to archive raw there
+live: ~/clipper/live
+archive: ~/clipper/raw-archive
+min_free_gb: 20                 # rec.py stops recording below this much free space
+local_keep_hours: 4
+raw_keep_hours: 24
+category_match: "grand theft auto"   # default game filter; a streamer's own category_match overrides
+height: 1080
+segment_seconds: 60
+dash_port: 7779
+platforms: [tiktok, youtube, instagram, x]
+accounts: {tiktok: "", instagram: "", x: "", youtube: ""}   # Blotato username or id per platform (python3 publish.py --accounts)
+daily_cap: {tiktok: 2, youtube: 3, instagram: 2, x: 5}       # hard ceiling per account per rolling 24h
+
+easter_eggs: []                 # optional regexes; chat spamming these lifts a moment's score
+
+allocator:                      # allocator.py, hourly: real $/1k per campaign, picks targets
+  targets: 3
+  deadline: 2027-01-31
+  prior_views_per_clip: 300
+  alist: []                     # streamer display names you are allowed to record
+  views_only: []
+governor:                       # governor.py: OFF until Dung signs off (day 14+)
+  accounts_created: 2027-01-01
+  ramp: [[1, 0], [3, 1], [5, 2], [8, 3], [15, 4]]
+  min_gap_hours: 3
+  stall_views: 100
+  stall_after_hours: 2
+  stall_streak: 2
+  pause_hours: 24
+  since: 2027-01-01
+  max_clip_age_hours: 36
+
+streamers: {}
+# One entry per streamer. Claude adds these in plan mode after you have joined the campaign by hand.
+# Example shape (not a real campaign):
+#  example:
+#    platform: twitch                      # twitch | kick | youtube
+#    url: https://www.twitch.tv/example
+#    campaign: Content Rewards Example GTA VI ($1/1k)
+#    campaign_url: https://contentrewards.com/c/campaigns/<id>
+#    rate_per_1k: 1.0
+#    min_views: 1000
+#    cap_usd: 250
+#    submit_window_min: 30
+#    post_to: [tiktok, youtube, instagram, x]
+#    caption_tail: "Example #Example"
+#    tags: ["Example", "#Example", "#gta6"]
+#    no_logos: true                        # campaign bans third-party logos (drops the platform banner)
+#    disclose: false                       # paid-partnership label needed
+#    onscreen: ""                          # on-screen requirement the gate checks
+#    handle: ""                            # credit tag on the overlay
+#    cam: [0.0, 0.5, 0.2, 0.27]            # face-cam box as x, y, w, h fractions of the frame
+#    cover_cam: [0.0, 0.0, 0.25, 0.25]
