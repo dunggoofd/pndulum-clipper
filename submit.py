@@ -102,6 +102,14 @@ def pick_clip(page, dlg, rec, s, p, url):
     names = [btns.nth(i).get_attribute("aria-label") or btns.nth(i).inner_text() for i in range(n)]
     hits = [i for i, nm in enumerate(names) if want and norm(nm).startswith(want)]
     if len(hits) > 1:
+        # The picker lists every linked account, so the same caption on TikTok and IG gives two tiles.
+        # Each tile's label ends ", @handle, Posted N min ago": keep the one from this platform's account.
+        handle = {**(CFG.get("accounts") or {}), **(s.get("accounts") or {})}.get(p)
+        tag = re.compile(rf",\s*@{re.escape(str(handle))},", re.I) if handle else None
+        own = [i for i in hits if tag and tag.search(names[i])]
+        if len(own) == 1:
+            hits = own
+    if len(hits) > 1:
         raise RuntimeError(f"{len(hits)} picker clips match this post; submit by hand")
     for i in range(n):
         if (btns.nth(i).get_attribute("aria-pressed") == "true") != (i in hits):

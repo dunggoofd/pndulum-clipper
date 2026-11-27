@@ -166,7 +166,7 @@ def main():
     for p in plats:
         mark(a.file, p, state="uploading", error=None)
     cover = clip.with_suffix(".cover.jpg")
-    src = with_cover_frame(clip, cover) if cover.exists() else clip
+    src = with_cover_frame(clip, cover) if cover.exists() and not s.get("sponsor_logo") else clip   # cover frame has no sponsor logo
     video = upload(src, "video/mp4")
     if src != clip:
         import shutil

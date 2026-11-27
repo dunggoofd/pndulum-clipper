@@ -59,6 +59,8 @@ def compliance(rec, s, p, caption):
         bad.append(f"{p} not allowed for this campaign")
     if rec.get("banner") and (s.get("no_logos") or "reach" in str(s.get("campaign", "")).lower()):
         bad.append(f"carries a {rec['banner']} logo banner, campaign bans logos")
+    if s.get("sponsor_logo") and rec.get("sponsor_logo") != s["sponsor_logo"]:
+        bad.append("campaign needs its sponsor logo on screen the whole clip and this cut has none (re-cut)")
     d = rec.get("duration") or 0
     if not MIN_S <= d <= MAX_S:
         bad.append(f"{d}s long, needs {MIN_S}-{MAX_S}s")

@@ -356,7 +356,16 @@ def cam_region(src, cam):
     return (min(max(x + w / 2 - cw / 2, 0), W - cw), min(max(y + h / 2 - ch / 2, 0), H - ch), cw, ch), W, H
 
 
-def vertical(src, overlay, out, cam=None, trim=0.0, focus=None):
+def overlay_pos(split, kick, sponsor):
+    if sponsor:   # keep hook and chat clear of the 600x200 logo (y 540-740 split, 480-680 blur-fill)
+        pos = {"hook_y": 760, "chat_y": 1010, "chat_h": 220} if split else {"hook_y": 220 if kick else 230, "chat_y": 690, "chat_h": 440}
+        return {**pos, "kick_y": 428 if split else 100} if kick else pos
+    pos = {"hook_y": 730, "kick_y": 600} if split and kick else {"hook_y": 520} if split else {"hook_y": 300, "kick_y": 160} if kick else {}
+    pos.update({"chat_y": 1000, "chat_h": 220} if split and kick else {"chat_y": 790, "chat_h": 420} if split else {"chat_y": 620, "chat_h": 440})
+    return pos
+
+
+def vertical(src, overlay, out, cam=None, trim=0.0, focus=None, logo=None):
     box, W, H = cam_region(src, cam)
     H = int(H * (1 - trim)) // 2 * 2
     focus = focus if box is not None else None
@@ -389,9 +398,15 @@ def vertical(src, overlay, out, cam=None, trim=0.0, focus=None):
     cmd = ["ffmpeg", "-y", "-loglevel", "error", "-i", str(src)]
     if overlay:
         cmd += ["-c:v", "libvpx-vp9", "-i", str(overlay)]
-        fc += ";[base][1:v]overlay=0:0:format=auto[v]"
+        fc += ";[base][1:v]overlay=0:0:format=auto[ov]"
     else:
-        fc += ";[base]null[v]"
+        fc += ";[base]null[ov]"
+    if logo:
+        # Sponsor logo campaigns (e.g. ClipUp): whole clip, drawn last so nothing covers it, centred on the facecam/gameplay seam (y 640) or the top edge of the blur-fill gameplay (y 580)
+        cmd += ["-i", str(Path(logo).expanduser())]
+        fc += f";[{2 if overlay else 1}:v]scale=600:-1:flags=lanczos[lg];[ov][lg]overlay=(W-w)/2:{540 if box is not None else 480}:format=auto[v]"
+    else:
+        fc += ";[ov]null[v]"
     cmd += ["-filter_complex", fc, "-map", "[v]", "-map", "0:a", "-r", "30", "-c:v", "libx264", "-preset", "medium", "-crf", "19",
             "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "160k", "-af", "loudnorm=I=-14:TP=-1.5", "-movflags", "+faststart", str(out)]
     subprocess.run(cmd, check=True)
@@ -505,8 +520,7 @@ def make_clip(d, meta, segs, msgs, peak, score):
         logo = banner_brand(sc)
         kick = sc["url"] if logo else None
         rec["banner"] = logo
-        pos = {"hook_y": 730, "kick_y": 600} if split and kick else {"hook_y": 520} if split else {"hook_y": 300, "kick_y": 160} if kick else {}
-        pos.update({"chat_y": 1000, "chat_h": 220} if split and kick else {"chat_y": 790, "chat_h": 420} if split else {"chat_y": 620, "chat_h": 440})
+        pos = overlay_pos(split, kick, sc.get("sponsor_logo"))
         jc = j.get("chat") if isinstance(j.get("chat"), dict) else None
         chat = None
         if jc:
@@ -514,7 +528,7 @@ def make_clip(d, meta, segs, msgs, peak, score):
             chat = chat_overlay(msgs, start + a, ci, co) if co - ci >= 2 else None
         rec["chat"] = {"in": chat["in"], "out": chat["out"], "n": len(chat["msgs"])} if chat else None
         cj.write_text(json.dumps({"duration": round(b - a, 2), "hook": j["hook"], "streamer": meta["name"], "words": cw,
-                                  "handle": sc.get("handle", "@" + sc.get("login", meta["name"])),
+                                  "handle": "" if sc.get("sponsor_logo") else sc.get("handle", "@" + sc.get("login", meta["name"])),
                                   **({"kick": kick, "logo": f"assets/{logo}-logo.svg"} if kick else {}), **({"chat": chat} if chat else {}),
                                   **({"focus": focus} if split and focus else {}), **pos}))
         r = subprocess.run([sys.executable, str(renderer), str(cj), str(work / "overlay.webm")], capture_output=True, text=True)
@@ -522,8 +536,9 @@ def make_clip(d, meta, segs, msgs, peak, score):
         if ov is None:
             log("overlay failed", r.stderr[-300:])
     layout = vertical(work / "clip.ts", ov, outdir / f"{name}.mp4", CFG["streamers"][meta["name"]].get("cam"),
-                      CFG["streamers"][meta["name"]].get("trim_bottom", 0.0), focus)
+                      CFG["streamers"][meta["name"]].get("trim_bottom", 0.0), focus, CFG["streamers"][meta["name"]].get("sponsor_logo"))
     rec.update(status="cut", file=f"{day}/{name}.mp4", layout=layout, overlay=bool(ov), duration=round(b - a, 1),
+               sponsor_logo=CFG["streamers"][meta["name"]].get("sponsor_logo"),
                cta=(CFG["streamers"][meta["name"]].get("handle") or "") if ov else "",
                focus=focus if layout == "facecam-split" else [],
                words=" ".join(w["w"] for w in cw))

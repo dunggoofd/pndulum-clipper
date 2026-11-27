@@ -117,8 +117,10 @@ def campaigns():
             continue
         for k in ("campaign_url", "alt_campaign_url"):
             c = cid(s.get(k))
-            if c:
-                out[c] = dict(key=c, streamer=name, joined=True, alt=k == "alt_campaign_url", url=s[k])
+            if c and c in out:
+                out[c]["streamers"].append(name)   # one campaign, several streamers (sponsor logo campaigns like ClipUp)
+            elif c:
+                out[c] = dict(key=c, streamer=name, streamers=[name], joined=True, alt=k == "alt_campaign_url", url=s[k])
     latest = ROOT / "scout" / "latest.json"
     for r in (json.loads(latest.read_text())["rows"] if latest.exists() else []):
         c = cid(r.get("url"))
@@ -153,7 +155,7 @@ def main():
                 break
             if r["key"] not in targets:
                 targets.append(r["key"])
-    record = sorted({r["streamer"] for r in live if r["key"] in targets and not CFG["streamers"][r["streamer"]].get("vod_only")}
+    record = sorted({n for r in live if r["key"] in targets for n in r.get("streamers", [r["streamer"]]) if not CFG["streamers"][n].get("vod_only")}
                     | {n for n in A.get("views_only", []) if n in CFG["streamers"] and not CFG["streamers"][n].get("off_niche")})
     prev = json.loads(OUT.read_text()) if OUT.exists() else {}
     res = dict(at=time.time(), views_per_clip=v_clip, slots_to_deadline=slots, targets=targets, record=record, rows=rows)
